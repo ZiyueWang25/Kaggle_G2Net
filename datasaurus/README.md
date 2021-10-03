@@ -16,13 +16,14 @@ generate out-of-fold (OOF) predictions for stacking models.
 ```
 sh train.sh <config_name>
 ```
+Note that the configurations are set for training on a machine with 2 GPUs. You may need to edit `hyperparams.yml` to reflect your hardware setup.
 
 # Reproducing Kaggle models
 To reproduce the model weights used in the final submission run:
 ```
 sh reproduce_train.sh 
 ```
-Note that a CSV file with the pseudolabels will need to be in the `INPUT_PATH` for the pesudolabelled models (e.g. `submission_power2_weight.csv`)
+Note that a CSV file with the pseudolabels will need to be in the `INPUT_PATH` for the pesudolabelled models (e.g. `submission_power2_weight.csv`).
 
 To reproduce the submission files (and OOF predictions), copy all the model weights to the `OUTPUT_PATH` and run:
 ```
