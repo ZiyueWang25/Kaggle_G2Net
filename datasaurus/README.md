@@ -1,8 +1,10 @@
 # g2net-gravitational-wave-detection
-https://www.kaggle.com/c/g2net-gravitational-wave-detection
 
+This folder contains [datasaurus's](https://www.kaggle.com/anjum48) part of the G2Net Gravitational Wave Detection solution.
 # Setup
-Edit `src/config.py` to reflect the input and output locations on your machine
+Edit `src/config.py` to reflect the `INPUT_PATH` and `OUTPUT_PATH` locations on your machine:
+* `INPUT_PATH` is where the competition train & test data resides as well as any pseudolabelling files
+* `OUTPUT_PATH` is where the outputted model weights will be saved. If you have the model weights, put them in this folder.
 
 # Training
 To train a single model using a config listed in `hyperparams.yml` run:
@@ -15,3 +17,14 @@ generate out-of-fold (OOF) predictions for stacking models.
 sh train.sh <config_name>
 ```
 
+# Reproducing Kaggle models
+To reproduce the model weights used in the final submission run:
+```
+sh reproduce_train.sh 
+```
+Note that a CSV file with the pseudolabels will need to be in the `INPUT_PATH` for the pesudolabelled models (e.g. `submission_power2_weight.csv`)
+
+To reproduce the submission files (and OOF predictions), copy all the model weights to the `OUTPUT_PATH` and run:
+```
+sh reproduce_infer.sh 
+```
