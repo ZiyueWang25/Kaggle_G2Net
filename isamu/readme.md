@@ -17,14 +17,14 @@ Execution time will vary depending on the model, but will take 1-2 days on TPU.
   - Stratified KFold
   - On the fly preprocessing(whitening signal and CQT image generating)
   - CQT params
-   - hop_length=32
-   - fmin=22
-   - fmax=None
-   - n_bins=64
-   - norm=1
-   - window='nuttall'
-   - bins_per_octave=21
-   - filter_scale=1
+    - hop_length=32
+    - fmin=22
+    - fmax=None
+    - n_bins=64
+    - norm=1
+    - window='nuttall'
+    - bins_per_octave=21
+    - filter_scale=1
   - Optimizer: AdamW
   - Loss function: Binary Cross Entropy
   - Augmentation: swapping channel between two LIGOs when training as augmentation and inference as TTA(Test Time Augmentation)
