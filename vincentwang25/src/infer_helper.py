@@ -1,4 +1,5 @@
 from tqdm import tqdm
+from torch.utils.data import Dataset, DataLoader
 import torch
 from .util import *
 from .dataset import *
@@ -22,9 +23,10 @@ def get_before_head(x, model):
     x2 = torch.cat(x1,1)
     return model.conv2(x2)
     
-def get_pred(loader, model, device, use_MC=False, MC_fold=64):
-    model.head[4].train()
-    model.head[8].train()
+def get_pred(loader, model, device, use_MC=False, MC_folds=64):
+    if use_MC:
+        model.head[4].train()
+        model.head[8].train()
     preds = []
     for step, batch in enumerate(loader, 1):
         if step % 100 == 0:
@@ -33,7 +35,7 @@ def get_pred(loader, model, device, use_MC=False, MC_fold=64):
             X = batch[0].to(device)
             if use_MC:
                 x2 = get_before_head(X, model)
-                preds_MC = [model.head(x2) for i in range(MC_fold)]
+                preds_MC = [model.head(x2) for i in range(MC_folds)]
                 outputs = torch.stack(preds_MC,0).mean(0)
             else:
                 outputs = model(X)
@@ -42,14 +44,13 @@ def get_pred(loader, model, device, use_MC=False, MC_fold=64):
     predictions = np.concatenate(preds)
     return predictions
 
-def get_tta_pred(df, model, device, use_MC=False, MC_fold=64, 
-                 batch_size=512,num_workers=8,**transforms):
+def get_tta_pred(df, model, Config, **transforms):
     data_retriever = TTA(df['file_path'].values, df['target'].values, **transforms)
     loader = DataLoader(data_retriever, 
-                        batch_size=batch_size, 
+                        batch_size=Config.batch_size, 
                         shuffle=False, 
-                        num_workers=8, pin_memory=True, drop_last=False)
-    return get_pred(loader, model, device, use_MC, MC_fold)
+                        num_workers=Config.num_workers, pin_memory=True, drop_last=False)
+    return get_pred(loader, model, Config.device, Config.use_MC, Config.MC_folds)
 
 
 class TTA(Dataset):
@@ -97,9 +98,9 @@ class TTA(Dataset):
 
 def get_tta_df(df, model,Config):
     if Config.vflip:
-        df["tta_vflip"] = get_tta_pred(df,model,use_vflip=Config.vflip, use_MC=Config.use_MC, MC_folds=Config.MC_folds)
+        df["tta_vflip"] = get_tta_pred(df, model, Config, use_vflip=True)
     if Config.shuffle01:
-        df["tta_shuffle01"] = get_tta_pred(df,model,shuffle01=Config.shuffle01, use_MC=Config.use_MC, MC_folds=Config.MC_folds)
+        df["tta_shuffle01"] = get_tta_pred(df,model, Config, shuffle01=True)
     # df["tta_shift"] = get_tta_pred(df,model,time_shift=True)
     # df["tta_vflip_shift"] = get_tta_pred(df,model,use_vflip=True,time_shift=True)
     # df["tta_vflip_shuffle01"] = get_tta_pred(df,model,use_vflip=True,shuffle01=True)
@@ -108,13 +109,14 @@ def get_tta_df(df, model,Config):
     return df
 
 
-def get_oof_final(train_df, test_df, model_dict, Config):
-    model = Model(model_dict)
+def get_oof_final(train_df, test_df, model_config, Config):
     oof_all = pd.DataFrame()
     for fold in tqdm(Config.train_folds):
+        if model_config["model_module"] == "M3D":
+            model_config["fold"] = fold        
+        model = Model(model_config)
         oof = train_df.query(f"fold=={fold}").copy()
         oof['preds'] = torch.load(f'{Config.model_output_folder}/Fold_{fold}_best_model.pth')['valid_preds']
-        oof['file_path'] = train_df['id'].apply(lambda x :id_2_path_wave(x))
         if Config.use_swa:
             swa_model = AveragedModel(model)
             checkpoint = torch.load(f'{Config.model_output_folder}/Fold_{fold}_swa_model.pth')
@@ -131,27 +133,31 @@ def get_oof_final(train_df, test_df, model_dict, Config):
         oof = get_tta_df(oof, model, Config)
         oof.to_csv(Config.model_output_folder + f"/oof_Fold_{fold}.csv", index=False)
         oof_all = pd.concat([oof_all,oof])
-    print("Original:",roc_auc_score(oof_all['target'], oof_all['preds']))
+    print("Original:",fast_auc(oof_all['target'], oof_all['preds']))
 
     for col in oof.columns:
         if "tta" in col:
-            print(col,roc_auc_score(oof_all['target'], oof_all[col]))
+            print(col,fast_auc(oof_all['target'], oof_all[col]))
 
     avg_cols = [col for col in oof_all.columns if "tta" in col or "preds" in col]
     oof_all['avg']=oof_all[avg_cols].mean(axis=1)
-    CV_SCORE = oof_all.groupby("fold").apply(lambda df: roc_auc_score(df['target'],df['avg'])).mean()
+    fold_scores = oof_all.groupby("fold").apply(lambda df: fast_auc(df['target'],df['avg']))
+    print(fold_scores)
+    CV_SCORE = fold_scores.mean()
     print("CV_SCORE:", CV_SCORE)
     oof_all.to_csv(Config.model_output_folder + "/oof_all.csv", index=False)
     oof_final = oof_all[['id','fold','avg']].rename(columns={'id':'id','fold':'fold','avg':'prediction'})
     oof_final.to_csv(Config.model_output_folder + f"/oof_final_CV{CV_SCORE * 1e5:.0f}.csv", index=False)
     return CV_SCORE, oof_all
 
-def get_test_avg(CV_SCORE, test_df, model_dict, Config):
+def get_test_avg(CV_SCORE, test_df, model_config, Config):
     test_df['target'] = 0  
-    model = Model(model_dict)
     test_avg = test_df[['id', 'target']].copy()
     count = 0
     for fold in tqdm(Config.train_folds):
+        if model_config["model_module"] == "M3D":
+            model_config["fold"] = fold        
+        model = Model(model_config)
         test_df2 = test_df.copy()
         if Config.use_swa:
             swa_model = AveragedModel(model)
@@ -165,7 +171,7 @@ def get_test_avg(CV_SCORE, test_df, model_dict, Config):
         if Config.use_dp and torch.cuda.device_count() == 2:
             model = nn.DataParallel(model)
         model.eval()
-        test_df2['preds'+f'_Fold_{fold}'] = get_tta_pred(test_df2,model)
+        test_df2['preds'+f'_Fold_{fold}'] = get_tta_pred(test_df2, model, Config)
         test_df2 = get_tta_df(test_df2, model, Config)
         test_df2.to_csv(Config.model_output_folder + f"/test_Fold_{fold}.csv", index=False)
         for col in test_df2.columns:

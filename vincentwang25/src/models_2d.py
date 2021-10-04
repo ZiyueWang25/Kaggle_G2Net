@@ -110,9 +110,3 @@ class Model_2D_fmin22(nn.Module):
                     x = self.frequency_encoding(x)
         
         return self.encoder(x)    
-    
-    
-
-    
-    
-    

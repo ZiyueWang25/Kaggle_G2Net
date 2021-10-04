@@ -23,12 +23,12 @@ def training_loop(train_df, test_df, model_config, Config, synthetic=None):
     folds_val_score = []
     for fold in range(5): 
         if model_config["model_module"] == "M3D":
-            model_dict["fold"] = fold
+            model_config["fold"] = fold
         print('Fold: ', fold)
         if fold not in Config.train_folds:
             print("skip")
             continue
-        best_valid_score = run_fold(fold, train_df.copy(), test_df, model_config, synthetic=synthetic, **class2dict(Config))
+        best_valid_score = run_fold(fold, train_df.copy(), test_df, model_config, Config, synthetic=synthetic)
         folds_val_score.append(best_valid_score)
     print('folds score:', folds_val_score)
     print("Avg: {:.5f}".format(np.mean(folds_val_score)))
@@ -37,20 +37,13 @@ def training_loop(train_df, test_df, model_config, Config, synthetic=None):
         wandb.finish()
 
 
-def run_fold(fold, original_train_df, test_df, model_config, 
-             model_output_folder, PL_folder=None, 
-             epochs=4,
-             device='cuda', use_dp=False,
-             checkpoint_folder=None,
+def run_fold(fold, original_train_df, test_df, model_config, Config,             
              use_swa=False, swa_start_step=None, swa_start_epoch=None, 
              train_transform=None, test_transform=None, synthetic=None,
-             batch_size=256, num_workers=8,
-             lr=1e-2, weight_decay=1e-4, 
-             print_num_steps=100, use_wandb=False,
              **kwargs,
              ):
 
-    train_df = generate_PL(fold, original_train_df.copy(),test_df, PL_folder)
+    train_df = generate_PL(fold, original_train_df.copy(),test_df, Config)
     train_index, valid_index = train_df.query(f"fold!={fold}").index, train_df.query(f"fold=={fold}").index #fold means fold_valid 
     train_X, valid_X = train_df.loc[train_index], train_df.loc[valid_index]
     valid_labels = train_df.loc[valid_index,"target"].values
@@ -59,53 +52,53 @@ def run_fold(fold, original_train_df, test_df, model_config,
     oof['id'] = valid_X['id'].values.copy()
     oof = oof.reset_index()
     oof['preds'] = valid_labels
-    oof.to_csv(f'{model_output_folder}/Fold_{fold}_oof_pred.csv')
+    oof.to_csv(f'{Config.model_output_folder}/Fold_{fold}_oof_pred.csv')
 
     print('training data samples, val data samples: ', len(train_X) ,len(valid_X))
-    train_data_retriever = DataRetriever(train_X["file_path"].values, train_X["target"].values, transforms=train_transform,synthetic=synthetic)
+    train_data_retriever = DataRetriever(train_X["file_path"].values, train_X["target"].values, transforms=train_transform, synthetic=synthetic)
     valid_data_retriever = DataRetrieverTest(valid_X["file_path"].values, valid_X["target"].values, transforms=test_transform)       
     
     train_loader = DataLoader(train_data_retriever,
-                              batch_size=batch_size, 
+                              batch_size=Config.batch_size, 
                               shuffle=True, 
-                              num_workers=num_workers, pin_memory=True, drop_last=False)
+                              num_workers=Config.num_workers, pin_memory=True, drop_last=False)
     valid_loader = DataLoader(valid_data_retriever, 
-                              batch_size=batch_size * 2, 
+                              batch_size=Config.batch_size * 2, 
                               shuffle=False, 
-                              num_workers=num_workers, pin_memory=True, drop_last=False)
+                              num_workers=Config.num_workers, pin_memory=True, drop_last=False)
 
     model = Model(model_config)
-    model.to(device)
-    if use_dp and torch.cuda.device_count() == 2:
+    model.to(Config.device)
+    if Config.use_dp and torch.cuda.device_count() == 2:
         model = nn.DataParallel(model)
-    optimizer = AdamW(model.parameters(), lr=lr,eps=1e-08, weight_decay=weight_decay, amsgrad=False) #eps to avoid NaN/Inf in training loss
-    scheduler = get_scheduler(optimizer, len(train_X), batch_size, epochs)
+    optimizer = AdamW(model.parameters(), lr=Config.lr,eps=1e-08, weight_decay=Config.weight_decay, amsgrad=False) #eps to avoid NaN/Inf in training loss
+    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs)
     swa_model, swa_scheduler = None, None
     best_valid_score = -np.inf
-    if checkpoint_folder is not None:
-        print(f"Load Checkpoint from folder: {checkpoint_folder}")
-        checkpoint = torch.load(f'{checkpoint_folder}/Fold_{fold}_best_model.pth')
+    if Config.checkpoint_folder is not None:
+        print(f"Load Checkpoint from folder: {Config.checkpoint_folder}")
+        checkpoint = torch.load(f'{Config.checkpoint_folder}/Fold_{fold}_best_model.pth')
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         best_valid_score = float(checkpoint['best_valid_score'])
-    if use_swa:
+    if Config.use_swa:
         print("Use SWA")
-        swa_model, swa_scheduler = get_swa(model, optimizer, epochs, swa_start_step_epoch, swa_lr, len(train_X), batch_size)
+        swa_model, swa_scheduler = get_swa(model, optimizer, Config.epochs, Config.swa_start_step_epoch, Config.swa_lr, len(train_X), Config.batch_size)
 
-    scheduler = get_scheduler(optimizer, len(train_X), batch_size, epochs)
+    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs)
     criterion = F.binary_cross_entropy_with_logits
 
-    trainer = Trainer(model, device, optimizer, criterion, scheduler, valid_labels, 
+    trainer = Trainer(model, Config.device, optimizer, criterion, scheduler, valid_labels, 
                       best_valid_score, fold,
                       swa_model=swa_model,swa_scheduler=swa_scheduler, swa_start_step=swa_start_step,
-                      swa_start_epoch=swa_start_epoch, print_num_steps=print_num_steps, use_wandb=use_wandb
+                      swa_start_epoch=swa_start_epoch, print_num_steps=Config.print_num_steps, use_wandb=Config.use_wandb
                       )
 
     history = trainer.fit(
-        epochs=epochs, 
+        epochs=Config.epochs, 
         train_loader=train_loader, 
         valid_loader=valid_loader,
-        save_path=f'{model_output_folder}/Fold_{fold}_',
+        save_path=f'{Config.model_output_folder}/Fold_{fold}_',
     )
     return trainer.best_valid_score
 
@@ -113,12 +106,12 @@ def run_fold(fold, original_train_df, test_df, model_config,
 
 class Trainer:
     def __init__(self, model, device, optimizer, criterion, scheduler, valid_labels,
-    			 best_valid_score, fold, 
-    			 use_amp=True, do_autocast=False,gradient_accumulation_steps=1,
-    			 use_mixup=False, mixup_alpha=None, mixed_criterion=None,
-    			 swa_model=None, swa_scheduler=None, swa_start_step=None, 
-    			 swa_start_epoch=None,
-    			 print_num_steps=100, use_wandb=False, **kwargs):
+                 best_valid_score, fold, 
+                 use_amp=True, do_autocast=False,gradient_accumulation_steps=1,
+                 use_mixup=False, mixup_alpha=None, mixed_criterion=None,
+                 swa_model=None, swa_scheduler=None, swa_start_step=None, 
+                 swa_start_epoch=None,
+                 print_num_steps=100, use_wandb=False, **kwargs):
         self.model = model
         self.device = device
         self.optimizer = optimizer
@@ -178,10 +171,10 @@ class Trainer:
             print('best_valid_score: ',self.best_valid_score)
             print('time used: ', time.time()-start_time)
             if self.use_wandb:
-	            wandb.log({f"[fold{self.fold}] epoch": n_epoch+1, 
-	                      f"[fold{self.fold}] avg_train_loss": train_loss, 
-	                      f"[fold{self.fold}] avg_val_loss": valid_loss,
-	                      f"[fold{self.fold}] val_score": valid_score})        
+                wandb.log({f"[fold{self.fold}] epoch": n_epoch+1, 
+                          f"[fold{self.fold}] avg_train_loss": train_loss, 
+                          f"[fold{self.fold}] avg_val_loss": valid_loss,
+                          f"[fold{self.fold}] val_score": valid_score})        
         # save swa
         if self.swa_model is not None:
             update_bn(train_loader, self.swa_model, device=self.device)
@@ -189,8 +182,8 @@ class Trainer:
             valid_score_swa = get_score(self.valid_labels, valid_preds_swa)
             print("SWA: Valid Loss {:.5f}, Valid Score {:.5f}".format(valid_loss_swa, valid_score_swa))
             if self.use_wandb:
-	            wandb.log({f"[fold{self.fold}] avg_val_loss_swa": valid_loss_swa, 
-	                      f"[fold{self.fold}] val_score_swa": valid_score_swa}) 
+                wandb.log({f"[fold{self.fold}] avg_val_loss_swa": valid_loss_swa, 
+                          f"[fold{self.fold}] val_score_swa": valid_score_swa}) 
             # update batch normalization
             save_dict = {
                 "swa_model_state_dict" : self.swa_model.state_dict(),                
@@ -242,8 +235,8 @@ class Trainer:
             loss2 = loss.detach()
 
             if self.use_wandb:
-	            wandb.log({f"[fold{self.fold}] loss": loss2,
-	                       f"[fold{self.fold}] lr": lr2})            
+                wandb.log({f"[fold{self.fold}] loss": loss2,
+                           f"[fold{self.fold}] lr": lr2})            
 
             losses.append(loss2)
             train_loss += loss2
