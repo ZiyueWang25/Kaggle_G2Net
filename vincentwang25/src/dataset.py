@@ -8,20 +8,6 @@ from sklearn.model_selection import StratifiedKFold
 from .util import id_2_path_wave
 
 
-def generate_PL(fold, train_df,test_df, PL_folder):
-    if PL_folder is None:
-        return train_df
-    pseudo_label_df = pd.read_csv(PL_folder + f"test_Fold_{fold}.csv")     
-    pseudo_label_df['file_path'] = pseudo_label_df['id'].apply(lambda x :id_2_path_wave(x,False))
-    pseudo_label_df["target"] = pseudo_label_df[f'preds_Fold_{fold}']
-    test_df_2 = pseudo_label_df.copy()
-    test_df_2['fold'] = -1
-    PL_train_df = pd.concat([train_df, test_df_2]).reset_index(drop=True)
-    PL_train_df.reset_index(inplace=True, drop=True)
-    return PL_train_df
-
-
-
 class DataRetriever(Dataset):
     def __init__(self, paths, targets, transforms=None, synthetic=None):
         self.paths = paths
@@ -77,6 +63,19 @@ class DataRetrieverTest(Dataset):
         target = torch.tensor(target,dtype=torch.float)
         return (x, target)
     
+def generate_PL(fold, train_df,test_df, Config):
+    if Config.PL_folder is None:
+        return train_df
+    pseudo_label_df = pd.read_csv(Config.PL_folder + f"test_Fold_{fold}.csv")     
+    pseudo_label_df['file_path'] = pseudo_label_df['id'].apply(lambda x :id_2_path_wave(x, Config.gdrive, False))
+    pseudo_label_df["target"] = pseudo_label_df[f'preds_Fold_{fold}']
+    test_df_2 = pseudo_label_df.copy()
+    test_df_2['fold'] = -1
+    PL_train_df = pd.concat([train_df, test_df_2]).reset_index(drop=True)
+    PL_train_df.reset_index(inplace=True, drop=True)
+    return PL_train_df
+    
+
 def read_synthetic(Config):
     print("Read Synthetic Data")
     with open(Config.gdrive+'/GW_sim_300k.pkl', 'rb') as handle:
