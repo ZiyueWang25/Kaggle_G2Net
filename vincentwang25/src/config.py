@@ -173,7 +173,7 @@ class M_1D_Config_pretrain(M_1D_Config):
 
 
 class M_1D_Config_adjust(M_1D_Config):
-    checkpoint_folder = None
+    checkpoint_folder = True
     epochs = 3
     wandb_post = "_adjust"
     optim = 'RangerLars'
@@ -207,7 +207,7 @@ class M_1DC16_Config_pretrain(M_1DC16_Config):
 
 
 class M_1DC16_Config_adjust(M_1DC16_Config):
-    checkpoint_folder = None
+    checkpoint_folder = True
     epochs = 2
     wandb_post = "_adjust"
     optim = 'RangerLars'
@@ -241,7 +241,7 @@ class M_1DS32_Config_pretrain(M_1DS32_Config):
 
 
 class M_1DS32_Config_adjust(M_1DS32_Config):
-    checkpoint_folder = None
+    checkpoint_folder = True
     epochs = 2
     wandb_post = "_adjust"
     optim = 'RangerLars'
@@ -276,7 +276,7 @@ class M_SD16_Config_pretrain(M_SD16_Config):
 
 
 class M_SD16_Config_adjust(M_SD16_Config):
-    checkpoint_folder = None
+    checkpoint_folder = True
     epochs = 2
     wandb_post = "_adjust"
     optim = 'RangerLars'
@@ -311,7 +311,7 @@ class M_SD32_Config_pretrain(M_SD32_Config):
 
 
 class M_SD32_Config_adjust(M_SD32_Config):
-    checkpoint_folder = None
+    checkpoint_folder = True
     epochs = 2
     wandb_post = "_adjust"
     optim = 'RangerLars'

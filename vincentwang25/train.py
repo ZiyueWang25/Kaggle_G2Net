@@ -20,3 +20,10 @@ if __name__ == "__main__":
     Config = read_config(arg.model_config)
     Config.device = device
     training_loop(train_df, test_df, Config, None)
+
+
+    Config = read_config(arg.model_config + "_adjust")
+    if Config is not None:
+        Config.device = device
+        print("Adjusting with rank loss")
+        training_loop(train_df, test_df, Config, None)

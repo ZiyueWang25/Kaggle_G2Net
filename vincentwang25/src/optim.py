@@ -455,7 +455,7 @@ class Lookahead(Optimizer):
         self.alpha = alpha
         self.k = k
         for group in self.param_groups:
-            group["step_counter"] = 0
+            group.setdefault("step_counter", 0)
         self.slow_weights = [[p.clone().detach() for p in group['params']]
                              for group in self.param_groups]
 
