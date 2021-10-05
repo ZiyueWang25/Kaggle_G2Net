@@ -1,6 +1,6 @@
-from models_1d import *
-from models_2d import *
-from models_3d import *
+from .models_1d import *
+from .models_2d import *
+from .models_3d import *
 
 
 def M1D(config):

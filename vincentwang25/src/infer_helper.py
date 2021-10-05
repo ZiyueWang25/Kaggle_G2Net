@@ -1,8 +1,8 @@
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-from util import *
-from dataset import *
-from models import getModel
+from .util import *
+from .dataset import *
+from .models import getModel
 from torch import nn
 
 

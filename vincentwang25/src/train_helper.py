@@ -7,11 +7,11 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch import nn
 
-from util import *
-from dataset import *
-from models import getModel
-from optim import RangerLars
-from loss import rank_loss
+from .util import *
+from .dataset import *
+from .models import getModel
+from .optim import RangerLars
+from .loss import rank_loss
 
 
 def training_loop(train_df, test_df, Config, synthetic=None):

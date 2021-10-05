@@ -1,6 +1,7 @@
-#https://github.com/mgrankin/over9000
+# https://github.com/mgrankin/over9000
 
 from torch.optim.optimizer import Optimizer
+
 
 class RAdam(Optimizer):
 
@@ -58,7 +59,9 @@ class RAdam(Optimizer):
 
                     # more conservative since it's an approximated value
                     if N_sma >= 5:
-                        step_size = group['lr'] * math.sqrt((1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (N_sma_max - 2)) / (1 - beta1 ** state['step'])
+                        step_size = group['lr'] * math.sqrt(
+                            (1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (
+                                        N_sma_max - 2)) / (1 - beta1 ** state['step'])
                     else:
                         step_size = group['lr'] / (1 - beta1 ** state['step'])
                     buffered[2] = step_size
@@ -67,7 +70,7 @@ class RAdam(Optimizer):
                     p_data_fp32.add_(-group['weight_decay'] * group['lr'], p_data_fp32)
 
                 # more conservative since it's an approximated value
-                if N_sma >= 5:            
+                if N_sma >= 5:
                     denom = exp_avg_sq.sqrt().add_(group['eps'])
                     p_data_fp32.addcdiv_(-step_size, exp_avg, denom)
                 else:
@@ -76,6 +79,7 @@ class RAdam(Optimizer):
                 p.data.copy_(p_data_fp32)
 
         return loss
+
 
 class PlainRAdam(Optimizer):
 
@@ -129,8 +133,10 @@ class PlainRAdam(Optimizer):
                     p_data_fp32.add_(-group['weight_decay'] * group['lr'], p_data_fp32)
 
                 # more conservative since it's an approximated value
-                if N_sma >= 5:                    
-                    step_size = group['lr'] * math.sqrt((1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (N_sma_max - 2)) / (1 - beta1 ** state['step'])
+                if N_sma >= 5:
+                    step_size = group['lr'] * math.sqrt(
+                        (1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (
+                                    N_sma_max - 2)) / (1 - beta1 ** state['step'])
                     denom = exp_avg_sq.sqrt().add_(group['eps'])
                     p_data_fp32.addcdiv_(-step_size, exp_avg, denom)
                 else:
@@ -144,9 +150,9 @@ class PlainRAdam(Optimizer):
 
 class AdamW(Optimizer):
 
-    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, warmup = 0):
+    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8, weight_decay=0, warmup=0):
         defaults = dict(lr=lr, betas=betas, eps=eps,
-                        weight_decay=weight_decay, warmup = warmup)
+                        weight_decay=weight_decay, warmup=warmup)
         super(AdamW, self).__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -189,14 +195,14 @@ class AdamW(Optimizer):
                 denom = exp_avg_sq.sqrt().add_(group['eps'])
                 bias_correction1 = 1 - beta1 ** state['step']
                 bias_correction2 = 1 - beta2 ** state['step']
-                
+
                 if group['warmup'] > state['step']:
                     scheduled_lr = 1e-8 + state['step'] * group['lr'] / group['warmup']
                 else:
                     scheduled_lr = group['lr']
 
                 step_size = group['lr'] * math.sqrt(bias_correction2) / bias_correction1
-                
+
                 if group['weight_decay'] != 0:
                     p_data_fp32.add_(-group['weight_decay'] * scheduled_lr, p_data_fp32)
 
@@ -205,8 +211,8 @@ class AdamW(Optimizer):
                 p.data.copy_(p_data_fp32)
 
         return loss
-    
-    
+
+
 # Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -225,11 +231,12 @@ import torch
 from torch.optim import Optimizer
 import math
 
+
 class AdamW(Optimizer):
     """Implements AdamW algorithm.
-  
+
     It has been proposed in `Adam: A Method for Stochastic Optimization`_.
-  
+
     Arguments:
         params (iterable): iterable of parameters to optimize or dicts defining
             parameter groups
@@ -241,15 +248,15 @@ class AdamW(Optimizer):
         weight_decay (float, optional): weight decay (L2 penalty) (default: 0)
         amsgrad (boolean, optional): whether to use the AMSGrad variant of this
             algorithm from the paper `On the Convergence of Adam and Beyond`_
-  
+
         Adam: A Method for Stochastic Optimization:
         https://arxiv.org/abs/1412.6980
         On the Convergence of Adam and Beyond:
         https://openreview.net/forum?id=ryQu7f-RZ
     """
-  
+
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8,
-                  weight_decay=0, amsgrad=False):
+                 weight_decay=0, amsgrad=False):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -261,15 +268,15 @@ class AdamW(Optimizer):
         defaults = dict(lr=lr, betas=betas, eps=eps,
                         weight_decay=weight_decay, amsgrad=amsgrad)
         super(AdamW, self).__init__(params, defaults)
-  
+
     def __setstate__(self, state):
         super(AdamW, self).__setstate__(state)
         for group in self.param_groups:
             group.setdefault('amsgrad', False)
-  
+
     def step(self, closure=None):
         """Performs a single optimization step.
-  
+
         Arguments:
             closure (callable, optional): A closure that reevaluates the model
                 and returns the loss.
@@ -277,7 +284,7 @@ class AdamW(Optimizer):
         loss = None
         if closure is not None:
             loss = closure()
-  
+
         for group in self.param_groups:
             for p in group['params']:
                 if p.grad is None:
@@ -286,9 +293,9 @@ class AdamW(Optimizer):
                 if grad.is_sparse:
                     raise RuntimeError('Adam does not support sparse gradients, please consider SparseAdam instead')
                 amsgrad = group['amsgrad']
-  
+
                 state = self.state[p]
-  
+
                 # State initialization
                 if len(state) == 0:
                     state['step'] = 0
@@ -299,12 +306,12 @@ class AdamW(Optimizer):
                     if amsgrad:
                         # Maintains max of all exp. moving avg. of sq. grad. values
                         state['max_exp_avg_sq'] = torch.zeros_like(p.data)
-  
+
                 exp_avg, exp_avg_sq = state['exp_avg'], state['exp_avg_sq']
                 if amsgrad:
                     max_exp_avg_sq = state['max_exp_avg_sq']
                 beta1, beta2 = group['betas']
-  
+
                 state['step'] += 1
                 # Decay the first and second moment running average coefficient
                 exp_avg.mul_(beta1).add_(1 - beta1, grad)
@@ -316,14 +323,15 @@ class AdamW(Optimizer):
                     denom = max_exp_avg_sq.sqrt().add_(group['eps'])
                 else:
                     denom = exp_avg_sq.sqrt().add_(group['eps'])
-  
+
                 bias_correction1 = 1 - beta1 ** state['step']
                 bias_correction2 = 1 - beta2 ** state['step']
                 step_size = group['lr'] * math.sqrt(bias_correction2) / bias_correction1
-                p.data.add_(-step_size,  torch.mul(p.data, group['weight_decay']).addcdiv_(1, exp_avg, denom) )
-  
+                p.data.add_(-step_size, torch.mul(p.data, group['weight_decay']).addcdiv_(1, exp_avg, denom))
+
         return loss
-  
+
+
 class Novograd(Optimizer):
     """
     Implements Novograd algorithm.
@@ -353,9 +361,9 @@ class Novograd(Optimizer):
         if not 0.0 <= betas[1] < 1.0:
             raise ValueError("Invalid beta parameter at index 1: {}".format(betas[1]))
         defaults = dict(lr=lr, betas=betas, eps=eps,
-                      weight_decay=weight_decay,
-                      grad_averaging=grad_averaging,
-                      amsgrad=amsgrad)
+                        weight_decay=weight_decay,
+                        grad_averaging=grad_averaging,
+                        amsgrad=amsgrad)
 
         super(Novograd, self).__init__(params, defaults)
 
@@ -426,17 +434,18 @@ class Novograd(Optimizer):
                 exp_avg.mul_(beta1).add_(grad)
 
                 p.data.add_(-group['lr'], exp_avg)
-        
+
         return loss
-    
+
 
 # Lookahead implementation from https://github.com/lonePatient/lookahead_pytorch/blob/master/optimizer.py
 
 import itertools as it
 from torch.optim import Optimizer, Adam
 
+
 class Lookahead(Optimizer):
-    def __init__(self, base_optimizer,alpha=0.5, k=6):
+    def __init__(self, base_optimizer, alpha=0.5, k=6):
         if not 0.0 <= alpha <= 1.0:
             raise ValueError(f'Invalid slow update rate: {alpha}')
         if not 1 <= k:
@@ -448,7 +457,7 @@ class Lookahead(Optimizer):
         for group in self.param_groups:
             group["step_counter"] = 0
         self.slow_weights = [[p.clone().detach() for p in group['params']]
-                                for group in self.param_groups]
+                             for group in self.param_groups]
 
         for w in it.chain(*self.slow_weights):
             w.requires_grad = False
@@ -459,25 +468,26 @@ class Lookahead(Optimizer):
         if closure is not None:
             loss = closure()
         loss = self.optimizer.step()
-        for group,slow_weights in zip(self.param_groups,self.slow_weights):
+        for group, slow_weights in zip(self.param_groups, self.slow_weights):
             group['step_counter'] += 1
             if group['step_counter'] % self.k != 0:
                 continue
-            for p,q in zip(group['params'],slow_weights):
+            for p, q in zip(group['params'], slow_weights):
                 if p.grad is None:
                     continue
-                q.data.add_(self.alpha,p.data - q.data)
+                q.data.add_(self.alpha, p.data - q.data)
                 p.data.copy_(q.data)
         return loss
 
 
 def LookaheadAdam(params, alpha=0.5, k=6, *args, **kwargs):
-     adam = Adam(params, *args, **kwargs)
-     return Lookahead(adam, alpha, k)
+    adam = Adam(params, *args, **kwargs)
+    return Lookahead(adam, alpha, k)
 
 
 import torch, math
 from torch.optim.optimizer import Optimizer
+
 
 # RAdam + LARS
 class Ralamb(Optimizer):
@@ -540,7 +550,9 @@ class Ralamb(Optimizer):
 
                     # more conservative since it's an approximated value
                     if N_sma >= 5:
-                        radam_step = group['lr'] * math.sqrt((1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (N_sma_max - 2)) / (1 - beta1 ** state['step'])
+                        radam_step = group['lr'] * math.sqrt(
+                            (1 - beta2_t) * (N_sma - 4) / (N_sma_max - 4) * (N_sma - 2) / N_sma * N_sma_max / (
+                                        N_sma_max - 2)) / (1 - beta1 ** state['step'])
                     else:
                         radam_step = group['lr'] / (1 - beta1 ** state['step'])
                     buffered[2] = radam_step
@@ -569,16 +581,17 @@ class Ralamb(Optimizer):
                 p.data.copy_(p_data_fp32)
 
         return loss
-    
 
- # RAdam + LARS + LookAHead
+
+# RAdam + LARS + LookAHead
 
 # Lookahead implementation from https://github.com/lonePatient/lookahead_pytorch/blob/master/optimizer.py
 # RAdam + LARS implementation from https://gist.github.com/redknightlois/c4023d393eb8f92bb44b2ab582d7ec20
 
 def Over9000(params, alpha=0.5, k=6, *args, **kwargs):
-     ralamb = Ralamb(params, *args, **kwargs)
-     return Lookahead(ralamb, alpha, k)
+    ralamb = Ralamb(params, *args, **kwargs)
+    return Lookahead(ralamb, alpha, k)
+
 
 RangerLars = Over9000
 

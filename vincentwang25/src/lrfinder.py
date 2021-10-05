@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import _LRScheduler, CyclicLR
 from torch.cuda.amp import autocast, GradScaler
 import torch
-from util import mixed_criterion, mixup_data
+from .util import mixed_criterion, mixup_data
 
 
 class LRFinder:

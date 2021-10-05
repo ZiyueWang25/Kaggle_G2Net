@@ -2,20 +2,21 @@ import os
 from argparse import ArgumentParser
 import torch
 
+
 class BaseConfig:
     # logistic
     seed = 48
     target_size = 1
-    gdrive = './input/'
-    output_dir = "./output_model/"
-    PL_folder = "./PL_fold/"
+    gdrive = '/home/input/'
+    output_dir = "/home/output_model/"
+    PL_folder = "/home/PL_fold/"
     use_raw_wave = True
     use_checkpoint = False
     prev_model_folder = None
-    debug = False
+    debug = True
     use_subset = False
     subset_frac = 0.4
-    # augmentation    
+    # augmentation
     vflip = False
     shuffle01 = False
     time_shift = False
@@ -36,7 +37,7 @@ class BaseConfig:
     wandb_post = ""
     wandb_project = "G2Net_Rep"
     # training related
-    train_folds = [0, 1, 2, 3, 4]
+    train_folds = [0]
     optim = 'Adam'
     warmup = 0.1
     crit = 'bce'
@@ -109,7 +110,7 @@ class resnet34_Config(BaseConfig):
     encoder = "resnet34"
     shuffle01 = True
     checkpoint_folder = True
-    epochs = 4
+    epochs = 5
     use_dp = True
 
 
@@ -134,15 +135,16 @@ class M3D_Config(BaseConfig):
     epochs = 1
     use_dp = True
 
-    model_1D_emb = 128,
-    model_1D_pretrain_dir = "./output_model/main_82nd_V2_c16_sGW_vflip_sc01_PL/",
+    model_1D = "V2"
+    model_1D_emb = 128
+    model_1D_pretrain_dir = "/home/output_model/V2_c16_sGW_vflip_sc01_PL/"
 
-    model_2D = 'resnet34',
-    encoder = "resnet34",
-    model_2D_emb = 128,
-    model_2D_pretrain_dir = "./output_model/resnet34-sGW2ep-PL-sc01-5ep/",
+    model_2D = 'resnet34'
+    encoder = "resnet34"
+    model_2D_emb = 128
+    model_2D_pretrain_dir = "/home/output_model/resnet34-sGW2ep-PL-sc01-5ep/"
 
-    first = 128,
+    first = 128
     ps = 0.1
 
 
@@ -161,7 +163,7 @@ class M_1D_Config(BaseConfig):
     sdrop = 0.05
 
 
-class M_1D_Config_pretrain(V2SD_Config):
+class M_1D_Config_pretrain(M_1D_Config):
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -170,7 +172,7 @@ class M_1D_Config_pretrain(V2SD_Config):
     warmup = 0.1
 
 
-class M_1D_Config_adjust(V2SD_Config):
+class M_1D_Config_adjust(M_1D_Config):
     checkpoint_folder = None
     epochs = 3
     wandb_post = "_adjust"
@@ -195,7 +197,7 @@ class M_1DC16_Config(BaseConfig):
     sdrop = 0.05
 
 
-class M_1DC16_Config_pretrain(V2SD_Config):
+class M_1DC16_Config_pretrain(M_1DC16_Config):
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -204,7 +206,7 @@ class M_1DC16_Config_pretrain(V2SD_Config):
     warmup = 0.1
 
 
-class M_1DC16_Config_adjust(V2SD_Config):
+class M_1DC16_Config_adjust(M_1DC16_Config):
     checkpoint_folder = None
     epochs = 2
     wandb_post = "_adjust"
@@ -229,7 +231,7 @@ class M_1DS32_Config(BaseConfig):
     sdrop = 0.05
 
 
-class M_1DS32_Config_pretrain(V2SD_Config):
+class M_1DS32_Config_pretrain(M_1DS32_Config):
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -238,7 +240,7 @@ class M_1DS32_Config_pretrain(V2SD_Config):
     warmup = 0.1
 
 
-class M_1DS32_Config_adjust(V2SD_Config):
+class M_1DS32_Config_adjust(M_1DS32_Config):
     checkpoint_folder = None
     epochs = 2
     wandb_post = "_adjust"
@@ -264,7 +266,7 @@ class M_SD16_Config(BaseConfig):
     proba_final_layer = 0.5
 
 
-class M_SD16_Config_pretrain(V2SD_Config):
+class M_SD16_Config_pretrain(M_SD16_Config):
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -273,7 +275,7 @@ class M_SD16_Config_pretrain(V2SD_Config):
     warmup = 0.1
 
 
-class M_SD16_Config_adjust(V2SD_Config):
+class M_SD16_Config_adjust(M_SD16_Config):
     checkpoint_folder = None
     epochs = 2
     wandb_post = "_adjust"
@@ -299,7 +301,7 @@ class M_SD32_Config(BaseConfig):
     proba_final_layer = 0.5
 
 
-class M_SD32_Config_pretrain(V2SD_Config):
+class M_SD32_Config_pretrain(M_SD32_Config):
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -308,7 +310,7 @@ class M_SD32_Config_pretrain(V2SD_Config):
     warmup = 0.1
 
 
-class M_SD32_Config_adjust(V2SD_Config):
+class M_SD32_Config_adjust(M_SD32_Config):
     checkpoint_folder = None
     epochs = 2
     wandb_post = "_adjust"

@@ -1,11 +1,11 @@
-python train.py --model_config V2
-python infer.py --model_config V2
-python train.py --model_config resnet34
-python infer.py --model_config resnet34
+# python train.py --model_config V2
+# python infer.py --model_config V2
+# python train.py --model_config resnet34
+# python infer.py --model_config resnet34
 # python train.py --model_config V2SD
 # python infer.py --model_config V2SD
-python train.py --model_config M3D
-python infer.py --model_config M3D
+# python train.py --model_config M3D
+# python infer.py --model_config M3D
 
 # from Maxim
 python train.py --model_config M-1D

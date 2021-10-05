@@ -5,7 +5,7 @@ import random
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
-from util import id_2_path_wave
+from .util import id_2_path_wave
 
 
 class DataRetriever(Dataset):
@@ -72,9 +72,14 @@ def generate_PL(fold, train_df, test_df, Config):
     pseudo_label_df["target"] = pseudo_label_df[f'preds_Fold_{fold}']
     test_df_2 = pseudo_label_df.copy()
     test_df_2['fold'] = -1
+
     if Config.PL_hard:
         test_df_2 = test_df_2.loc[~((test_df_2.target > 0.4) & (test_df_2.target < 0.85))]
         test_df_2.target = (test_df_2.target > 0.6).astype(np.int32)
+
+    if Config.debug:
+        test_df_2 = test_df_2.sample(n=10000, random_state=Config.seed).reset_index(drop=True)
+
     PL_train_df = pd.concat([train_df, test_df_2]).reset_index(drop=True)
     PL_train_df.reset_index(inplace=True, drop=True)
     return PL_train_df
@@ -95,6 +100,7 @@ def read_data(Config):
     if Config.debug:
         Config.epochs = 1
         train_df = train_df.sample(n=50000, random_state=Config.seed).reset_index(drop=True)
+        test_df = test_df.sample(n=10000, random_state=Config.seed).reset_index(drop=True)
     if Config.use_subset:
         train_df = train_df.sample(frac=Config.subset_frac, random_state=Config.seed).reset_index(drop=True)
 

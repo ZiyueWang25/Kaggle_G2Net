@@ -18,7 +18,7 @@ class Model_2D(nn.Module):
             in_chans=4,
         )
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("./input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
         self.spec_transform = Spectrogram.CQT1992v2(sr=2048, fmin=15, n_bins=64, hop_length=32,
                                                     output_format='Magnitude', norm=1, bins_per_octave=12,
                                                     window='nuttall')
@@ -66,7 +66,7 @@ class Model_2D_fmin22(nn.Module):
             in_chans=4,
         )
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("./input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
         self.spec_transform = Spectrogram.CQT1992v2(sr=2048, fmin=22, n_bins=64, hop_length=32,
                                                     output_format='Magnitude', norm=1, bins_per_octave=12,
                                                     window='nuttall')

@@ -161,7 +161,7 @@ class ModelIafossV2(nn.Module):
     def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=True), ps=0.5, use_raw_wave=False, sdrop=0, **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("./input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)
@@ -223,7 +223,7 @@ class V2StochasticDepth(nn.Module):  # stocnot on ex
                  sdrop=0, **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("./input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)
@@ -424,7 +424,7 @@ class ModelIafossV2S(nn.Module):
                  use_raw_wave=False, sdrop=0, **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("./input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)
