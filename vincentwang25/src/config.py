@@ -52,7 +52,14 @@ class BaseConfig:
     # speedup
     num_workers = 7
     use_cudnn = True 
-    use_dp=True  # dataparallel
+    use_dp=False  # dataparallel
+    optim='Adam'
+    warmup=0.1
+    crit='bce'
+    channels = 16
+    proba_final_layer = 0.8
+    sdrop=0
+    PL_hard=False
 
     
 class V2_Config(BaseConfig):
@@ -66,8 +73,7 @@ class V2_Config(BaseConfig):
     lr=7e-3
     checkpoint_folder=True
     epochs=6
-    wandb_name = 'V2_c16_sGW_vflip_sc01_PL_repr'
-    use_dp=False     
+    wandb_name = 'V2_c16_sGW_vflip_sc01_PL_repr'   
 
 class V2_Config_pretrain(V2_Config):
     checkpoint_folder=None
@@ -81,11 +87,11 @@ class V2SD_Config(BaseConfig):
     model_module="V2SD"
     vflip=True
     shuffle01=True
+    channels = 32
         
     checkpoint_folder=True
     epochs=6
-    wandb_name = 'V2SD_sGW_vflip_sc01_PL_repr'
-    use_dp=False    
+    wandb_name = 'V2SD_sGW_vflip_sc01_PL_repr'  
 
 class V2SD_Config_pretrain(V2SD_Config):
     checkpoint_folder=None
@@ -127,29 +133,197 @@ class M3D_Config(BaseConfig):
     epochs=1
     wandb_name = '3D_1ep1e2_repr'
     use_dp=True
-    
+
+#M-1D, M-1DS32, M-1DC16, M-SD16, M-SD32
+class M_1D_Config(BaseConfig):
+    model_name = 'M-1D'
+    model_version="M-1D"
+    model_module="V2"
+    vflip=True
+    shuffle01=True
+    channels = 32
+        
+    checkpoint_folder=True
+    epochs=6
+    wandb_name = 'M-1D'
+    optim = 'RangerLars'
+    warmup = 0
+    sdrop = 0.05
+
+class M_1D_Config_pretrain(V2SD_Config):
+    checkpoint_folder=None
+    PL_folder=None
+    epochs=4
+    wandb_name = M_1D_Config.model_version + "_pretrain"
+    optim = 'Adam'
+    warmup = 0.1
+
+class M_1D_Config_adjust(V2SD_Config):
+    checkpoint_folder=None
+    epochs=3
+    wandb_name = M_1D_Config.model_version + "_adjust"
+    optim = 'RangerLars'
+    warmup = 0
+    crit = 'rank'
+    PL_hard = True
+    sdrop = 0
+
+
+class M_1DC16_Config(BaseConfig):
+    model_name = 'M-1DC16'
+    model_version="M-1DC16"
+    model_module="V2"
+    vflip=True
+    shuffle01=True
+    channels = 16
+        
+    checkpoint_folder=True
+    epochs=6
+    wandb_name = 'M-1DC16'
+    optim = 'RangerLars'
+    warmup = 0
+    sdrop = 0.05
+
+class M_1DC16_Config_pretrain(V2SD_Config):
+    checkpoint_folder=None
+    PL_folder=None
+    epochs=4
+    wandb_name = M_1D_Config.model_version + "_pretrain"
+    optim = 'Adam'
+    warmup = 0.1
+
+class M_1DC16_Config_adjust(V2SD_Config):
+    checkpoint_folder=None
+    epochs=2
+    wandb_name = M_1D_Config.model_version + "_adjust"
+    optim = 'RangerLars'
+    warmup = 0
+    crit = 'rank'
+    PL_hard = True
+    sdrop = 0
+
+
+class M_1DS32_Config(BaseConfig):
+    model_name = 'M-1DS32'
+    model_version="M-1DS32"
+    model_module="V2S"
+    vflip=True
+    shuffle01=True
+    channels = 32
+        
+    checkpoint_folder=True
+    epochs=6
+    wandb_name = 'M-1DS32'
+    optim = 'RangerLars'
+    warmup = 0
+    sdrop = 0.05
+
+class M_1DS32_Config_pretrain(V2SD_Config):
+    checkpoint_folder=None
+    PL_folder=None
+    epochs=4
+    wandb_name = M_1D_Config.model_version + "_pretrain"
+    optim = 'Adam'
+    warmup = 0.1
+
+class M_1DS32_Config_adjust(V2SD_Config):
+    checkpoint_folder=None
+    epochs=2
+    wandb_name = M_1D_Config.model_version + "_adjust"
+    optim = 'RangerLars'
+    warmup = 0
+    crit = 'rank'
+    PL_hard = True
+    sdrop = 0
+
+
+class M_SD16_Config(BaseConfig):
+    model_name = 'M-SD16'
+    model_version="M-SD16"
+    model_module="V2SD"
+    vflip=True
+    shuffle01=True
+    channels = 16
+        
+    checkpoint_folder=True
+    epochs=6
+    wandb_name = 'M-SD16'
+    optim = 'RangerLars'
+    warmup = 0
+    sdrop = 0.05
+    proba_final_layer = 0.5
+
+class M_SD16_Config_pretrain(V2SD_Config):
+    checkpoint_folder=None
+    PL_folder=None
+    epochs=4
+    wandb_name = M_1D_Config.model_version + "_pretrain"
+    optim = 'Adam'
+    warmup = 0.1
+
+class M_SD16_Config_adjust(V2SD_Config):
+    checkpoint_folder=None
+    epochs=2
+    wandb_name = M_1D_Config.model_version + "_adjust"
+    optim = 'RangerLars'
+    warmup = 0
+    crit = 'rank'
+    PL_hard = True
+    sdrop = 0
+
+
+class M_SD32_Config(BaseConfig):
+    model_name = 'M-SD16'
+    model_version="M-SD16"
+    model_module="V2SD"
+    vflip=True
+    shuffle01=True
+    channels = 32
+        
+    checkpoint_folder=True
+    epochs=6
+    wandb_name = 'M-SD16'
+    optim = 'RangerLars'
+    warmup = 0
+    sdrop = 0.05
+    proba_final_layer = 0.5
+
+class M_SD32_Config_pretrain(V2SD_Config):
+    checkpoint_folder=None
+    PL_folder=None
+    epochs=4
+    wandb_name = M_1D_Config.model_version + "_pretrain"
+    optim = 'Adam'
+    warmup = 0.1
+
+class M_SD32_Config_adjust(V2SD_Config):
+    checkpoint_folder=None
+    epochs=2
+    wandb_name = M_1D_Config.model_version + "_adjust"
+    optim = 'RangerLars'
+    warmup = 0
+    crit = 'rank'
+    PL_hard = True
+    sdrop = 0
+
+#======================================================================================
+#M-1D, M-1DS32, M-1DC16, M-SD16, M-SD32
+config_dict = {
+  'V2SD':V2SD_Config, 'V2SD_pretrain':V2SD_Config_pretrain, 'V2':V2_Config, 'V2_pretrain':V2_Config_pretrain,
+  'resnet34':resnet34_Config, 'resnet34_pretrain':resnet34_Config_pretrain, 'M3D':M3D_Config,
+  'M-1D':M_1D_Config, 'M-1D_pretrain':M_1D_Config_pretrain, 'M-1D_adjust':M_1D_Config_adjust,
+  'M-1DC16':M_1DC16_Config, 'M-1DC16_pretrain':M_1DC16_Config_pretrain, 'M-1DC16_adjust':M_1DC16_Config_adjust,
+  'M-1DS32':M_1DS32_Config, 'M-1DS32_pretrain':M_1DS32_Config_pretrain, 'M-1DS32_adjust':M_1DS32_Config_adjust,
+  'M-SD16':M_SD16_Config, 'M-SD16_pretrain':M_SD16_Config_pretrain, 'M-SD16_adjust':M_SD16_Config_adjust,
+  'M-SD32':M_SD32_Config, 'M-SD32_pretrain':M_SD32_Config_pretrain, 'M-SD32_adjust':M_SD32_Config_adjust,
+  }
     
 def read_config(name):
     print("Read Configuration")
-    Config = None
-    if name == "V2SD":
-        Config = V2SD_Config
-    elif name == "V2SD_pretrain":
-        Config = V2SD_Config_pretrain
-    elif name == "V2":
-        Config = V2_Config
-    elif name == "V2_pretrain":
-        Config = V2_Config_pretrain
-    elif name == "resnet34":
-        Config = resnet34_Config
-    elif name == "resnet34_pretrain":
-        Config = resnet34_Config_pretrain
-    elif name == "M3D":
-        Config = M3D_Config
-        
-    if Config is None:
+    if name in config_dict: Config = config_dict[name]
+    else:
         print(f"Configuration {name} is not found")
-        return Config
+        return None
 
     Config.model_output_folder = Config.output_dir + Config.model_version + "/"
     if Config.checkpoint_folder:
@@ -163,20 +337,22 @@ def read_config(name):
     print("Model Output Folder:", Config.model_output_folder)
     return Config    
     
-def read_model_dict(model_module):
+def read_model_dict(model_module, config):
     print(model_module)
     if model_module == "V2":
         model_dict = dict(
             model_module=model_module,
-            channels=16,
+            channels=config.channels,
             use_raw_wave=True,
+            sdrop=config.sdrop
         )
     if model_module == "V2SD":
         model_dict = dict(
             model_module=model_module,
-            channels=32,
-            proba_final_layer=0.8,
+            channels=config.channels,
+            proba_final_layer=config.proba_final_layer,
             use_raw_wave=True,
+            sdrop=config.sdrop
         )
     if model_module == "resnet34":
         model_dict = dict(
@@ -188,8 +364,8 @@ def read_model_dict(model_module):
         model_dict = dict(
             model_module=model_module,
             model_1D = 'V2',
-            channels = 16,
-            proba_final_layer = 0.8,
+            channels = config.channels,
+            proba_final_layer = config.proba_final_layer,
             use_raw_wave=True, 
             model_1D_emb=128,
             model_1D_pretrain_dir = "./output_model/main_82nd_V2_c16_sGW_vflip_sc01_PL/",

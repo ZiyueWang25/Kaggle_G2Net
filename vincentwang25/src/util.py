@@ -94,9 +94,9 @@ def seed_torch(seed=42):
     torch.backends.cudnn.deterministic = True
 
 
-def get_scheduler(optimizer, train_size, batch_size, epochs):
+def get_scheduler(optimizer, train_size, batch_size, epochs, warmup=0.1):
     epoch_step = train_size/batch_size
-    num_warmup_steps = int(0.1 * epoch_step * epochs)
+    num_warmup_steps = int(warmup * epoch_step * epochs)
     num_training_steps = int(epoch_step * epochs)
     scheduler = get_cosine_schedule_with_warmup(optimizer, 
                                                 num_warmup_steps=num_warmup_steps, 
