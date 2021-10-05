@@ -14,7 +14,8 @@ from torch.utils.data import DataLoader
 from .util import *
 from .dataset import *
 from .models import Model
-
+from .optim import RangerLars
+from .loss import rank_loss
 
 def training_loop(train_df, test_df, model_config, Config, synthetic=None):
     if Config.use_wandb:
@@ -69,10 +70,13 @@ def run_fold(fold, original_train_df, test_df, model_config, Config,
 
     model = Model(model_config)
     model.to(Config.device)
-    if Config.use_dp and torch.cuda.device_count() == 2:
+    if Config.use_dp and torch.cuda.device_count() > 1:
         model = nn.DataParallel(model)
-    optimizer = AdamW(model.parameters(), lr=Config.lr,eps=1e-08, weight_decay=Config.weight_decay, amsgrad=False) #eps to avoid NaN/Inf in training loss
-    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs)
+    if Config.optim == 'RangerLars':
+        optimizer = RangerLars(model.parameters(), lr=Config.lr,eps=1e-04, weight_decay=Config.weight_decay)
+    else:
+        optimizer = AdamW(model.parameters(), lr=Config.lr,eps=1e-08, weight_decay=Config.weight_decay, amsgrad=False) #eps to avoid NaN/Inf in training loss
+    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs, Config.warmup)
     swa_model, swa_scheduler = None, None
     best_valid_score = -np.inf
     if Config.checkpoint_folder is not None:
@@ -85,8 +89,8 @@ def run_fold(fold, original_train_df, test_df, model_config, Config,
         print("Use SWA")
         swa_model, swa_scheduler = get_swa(model, optimizer, Config.epochs, Config.swa_start_step_epoch, Config.swa_lr, len(train_X), Config.batch_size)
 
-    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs)
-    criterion = F.binary_cross_entropy_with_logits
+    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs, Config.warmup)
+    criterion = rank_loss if Config.crit == 'rank' else F.binary_cross_entropy_with_logits
 
     trainer = Trainer(model, Config.device, optimizer, criterion, scheduler, valid_labels, 
                       best_valid_score, fold,
@@ -214,7 +218,7 @@ class Trainer:
             else:
                 with autocast(enabled=self.do_autocast):
                     outputs = self.model(X).squeeze()
-                    loss = self.criterion(outputs, targets)
+                    loss = self.criterion(outputs[outputs==outputs], targets[outputs==outputs])
                     
             if self.gradient_accumulation_steps > 1:
                 loss = loss / self.gradient_accumulation_steps
@@ -257,7 +261,7 @@ class Trainer:
                 X = batch[0].to(self.device)
                 targets = batch[1].to(self.device)
                 outputs = model(X).squeeze()
-                loss = self.criterion(outputs, targets)
+                loss = self.criterion(outputs[outputs==outputs], targets[outputs==outputs])
                 if self.gradient_accumulation_steps > 1:
                     loss = loss / self.gradient_accumulation_steps
                 valid_loss.append(loss.detach().item())

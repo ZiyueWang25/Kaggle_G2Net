@@ -71,6 +71,9 @@ def generate_PL(fold, train_df,test_df, Config):
     pseudo_label_df["target"] = pseudo_label_df[f'preds_Fold_{fold}']
     test_df_2 = pseudo_label_df.copy()
     test_df_2['fold'] = -1
+    if Config.PL_hard:
+        test_df_2 = test_df_2.loc[~((test_df_2.target > 0.4)&(test_df_2.target < 0.85))]
+        test_df_2.target = (test_df_2.target > 0.6).astype(np.int32)
     PL_train_df = pd.concat([train_df, test_df_2]).reset_index(drop=True)
     PL_train_df.reset_index(inplace=True, drop=True)
     return PL_train_df

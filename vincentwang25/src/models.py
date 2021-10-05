@@ -3,14 +3,19 @@ from .models_2d import *
 from .models_3d import *
 
 
-def M1D(model_dict):
-    if model_dict['model_module']  == 'V2SD':
-        model = V2StochasticDepth(n=model_dict['channels'],
-                                  proba_final_layer=model_dict['proba_final_layer'], 
-                                  use_raw_wave=model_dict['use_raw_wave'])    
+def M1D(model_dict):  
     if model_dict['model_module'] == "V2":
         model = ModelIafossV2(n=model_dict['channels'],
-                              use_raw_wave=model_dict['use_raw_wave'])    
+                      use_raw_wave=model_dict['use_raw_wave'],sdrop=model_dict['sdrop'])
+                              
+    elif model_dict['model_module']  == 'V2SD':
+        model = V2StochasticDepth(n=model_dict['channels'],
+                      proba_final_layer=model_dict['proba_final_layer'], 
+                      use_raw_wave=model_dict['use_raw_wave'],sdrop=model_dict['sdrop'])  
+                              
+    elif model_dict['model_module'] == "V2S":
+        model = ModelIafossV2S(n=model_dict['channels'],
+                      use_raw_wave=model_dict['use_raw_wave'],sdrop=model_dict['sdrop'])
         
     return model
 
@@ -55,9 +60,10 @@ def M3D(model_dict):
         
 
 def Model(model_dict):
-    if model_dict['model_module'] in ['V2SD',"V2"]:
-        return M1D(model_dict)
     if model_dict['model_module'] in ['resnet34']:
         return M2D(model_dict)
-    if model_dict['model_module'] in ['M3D']:
+    elif model_dict['model_module'] in ['M3D']:
         return M3D(model_dict)
+    else:
+        return M1D(model_dict)
+

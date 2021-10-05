@@ -127,7 +127,7 @@ def get_oof_final(train_df, test_df, model_config, Config):
             model.load_state_dict(checkpoint['model_state_dict'])
             
         model.to(device=Config.device)
-        if Config.use_dp and torch.cuda.device_count() == 2:
+        if Config.use_dp and torch.cuda.device_count() > 1:
             model = nn.DataParallel(model)
         model.eval()
         oof = get_tta_df(oof, model, Config)
@@ -168,7 +168,7 @@ def get_test_avg(CV_SCORE, test_df, model_config, Config):
             checkpoint = torch.load(f'{Config.model_output_folder}/Fold_{fold}_best_model.pth')
             model.load_state_dict(checkpoint['model_state_dict'])
         model.to(device=Config.device)
-        if Config.use_dp and torch.cuda.device_count() == 2:
+        if Config.use_dp and torch.cuda.device_count() > 1:
             model = nn.DataParallel(model)
         model.eval()
         test_df2['preds'+f'_Fold_{fold}'] = get_tta_pred(test_df2, model, Config)
