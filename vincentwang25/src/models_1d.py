@@ -158,10 +158,10 @@ def to_Mish(model):
 
 
 class ModelIafossV2(nn.Module):
-    def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=True), ps=0.5, use_raw_wave=False, sdrop=0, **kwarg):
+    def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=True), ps=0.5, use_raw_wave=False, sdrop=0, avrSpecDir="/home/data/", **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load(avrSpecDir+"avr_w0.pth"), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)
@@ -220,10 +220,10 @@ class ModelIafossV2(nn.Module):
 
 class V2StochasticDepth(nn.Module):  # stocnot on ex
     def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=False), ps=0.5, proba_final_layer=0.5, use_raw_wave=False,
-                 sdrop=0, **kwarg):
+                 sdrop=0, avrSpecDir="/home/data/", **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load(avrSpecDir+"/avr_w0.pth"), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)
@@ -421,10 +421,10 @@ class ResBlockSGeM(nn.Module):
 
 class ModelIafossV2S(nn.Module):
     def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=False), ps=0.5, proba_final_layer=0.5,
-                 use_raw_wave=False, sdrop=0, **kwarg):
+                 use_raw_wave=False, sdrop=0, avrSpecDir="/home/data/", **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load("/home/input/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load(avrSpecDir+"/avr_w0.pth"), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)

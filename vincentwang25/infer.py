@@ -11,5 +11,5 @@ if __name__ == "__main__":
     device = get_device()
     seed_torch(seed=Config.seed)
     Config.device=device
-    CV_SCORE, oof_all = get_oof_final(train_df, test_df, Config)
+    CV_SCORE, oof_all = get_oof_final(train_df, Config)
     test_avg = get_test_avg(CV_SCORE, test_df, Config)

@@ -6,24 +6,11 @@ from src.config import read_config, prepare_args
 if __name__ == "__main__":
     arg = prepare_args()
     Config = read_config(arg.model_config)
-    train_df, test_df = read_data(Config)
-    device = get_device()
-    seed_torch(seed=Config.seed)
-
-    Config = read_config(arg.model_config + "_pretrain")
     if Config is not None:
+        print("Training with ", arg.model_config, " Configuration")
+        train_df, test_df = read_data(Config)
+        device = get_device()
         Config.device = device
-        print("pretraining with synthetic data")
         SIGNAL_DICT = read_synthetic(Config)
-        training_loop(train_df, test_df, Config, SIGNAL_DICT)
-
-    Config = read_config(arg.model_config)
-    Config.device = device
-    training_loop(train_df, test_df, Config, None)
-
-
-    Config = read_config(arg.model_config + "_adjust")
-    if Config is not None:
-        Config.device = device
-        print("Adjusting with rank loss")
-        training_loop(train_df, test_df, Config, None)
+        seed_torch(seed=Config.seed)
+        training_loop(train_df, Config, SIGNAL_DICT)

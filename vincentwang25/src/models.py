@@ -7,27 +7,27 @@ def M1D(config):
     if config.model_module == "V2":
         model = ModelIafossV2(n=config.channels,
                               sdrop=config.sdrop,
-                              use_raw_wave=config.use_raw_wave)
-
+                              use_raw_wave=config.use_raw_wave,
+                              avrSpecDir=config.inputDataFolder)
     elif config.model_module == 'V2SD':
         model = V2StochasticDepth(n=config.channels,
                                   proba_final_layer=config.proba_final_layer,
                                   sdrop=config.sdrop,
-                                  use_raw_wave=config.use_raw_wave)
-
+                                  use_raw_wave=config.use_raw_wave,
+                                  avrSpecDir=config.inputDataFolder)
     elif config.model_module == "V2S":
         model = ModelIafossV2S(n=config.channels,
                                sdrop=config.sdrop,
-                               use_raw_wave=config.use_raw_wave)
-
+                               use_raw_wave=config.use_raw_wave,
+                               avrSpecDir=config.inputDataFolder)
     return model
 
 
 def M2D(config):
     if config.model_module == 'resnet34':
         model = Model_2D(encoder=config.encoder,
-                         use_raw_wave=config.use_raw_wave
-                         )
+                         use_raw_wave=config.use_raw_wave,
+                         avrSpecDir=config.inputDataFolder)
     return model
 
 
@@ -57,7 +57,8 @@ def M3D(config):
                              emb_1d=config.model_1D_emb,
                              emb_2d=config.model_2D_emb,
                              first=config.first,
-                             ps=config.ps)
+                             ps=config.ps,
+                             avrSpecDir=config.inputDataFolder)
         model.freeze_conv(req_grad=False)
         config.model_module = "M3D"
     return model

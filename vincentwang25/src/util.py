@@ -9,7 +9,7 @@ from torch.optim.swa_utils import AveragedModel
 from numba import jit
 
 
-@jit
+@jit(forceobj=True)
 def fast_auc(y_true, y_prob):
     y_true = np.asarray(y_true)
     y_true = y_true[np.argsort(y_prob)]
@@ -134,11 +134,11 @@ class Dict2Class():
             setattr(self, key, my_dict[key])
 
 
-def id_2_path_wave(file_id: str, input_dir=".", train=True) -> str:
+def id_2_path_wave(idx, input_dir=".", train=True) -> str:
     if train:
-        return "{}/train-float32/{}.npy".format(input_dir, file_id)
+        return "{}/train/{}/{}/{}/{}.npy".format(input_dir, idx[0], idx[1], idx[2], idx)
     else:
-        return "{}/test-float32/{}.npy".format(input_dir, file_id)
+        return "{}/test/{}/{}/{}/{}.npy".format(input_dir, idx[0], idx[1], idx[2], idx)
 
 
 def get_device():

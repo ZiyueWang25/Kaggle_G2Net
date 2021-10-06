@@ -7,13 +7,14 @@ class BaseConfig:
     # logistic
     seed = 48
     target_size = 1
-    gdrive = '/home/input/'
+    kaggleDataFolder = '/home/g2net-gravitational-wave-detection/'
     output_dir = "/home/output_model/"
-    PL_folder = "/home/PL_fold/"
+    inputDataFolder = "/home/data/"
+    PL_folder = "/home/data/PL_folder/"
     use_raw_wave = True
     use_checkpoint = False
     prev_model_folder = None
-    debug = True
+    debug = False
     use_subset = False
     subset_frac = 0.4
     # augmentation
@@ -36,6 +37,7 @@ class BaseConfig:
     use_wandb = False
     wandb_post = ""
     wandb_project = "G2Net_Rep"
+    wandb_key_path = "/home/key/key.txt"
     # training related
     train_folds = [0]
     optim = 'Adam'
@@ -57,6 +59,10 @@ class BaseConfig:
     num_workers = 7
     use_cudnn = True
     use_dp = False  # dataparallel
+    use_gradScaler = True
+    use_autocast = False
+
+
     # model
     channels = 16
     proba_final_layer = 0.8
@@ -144,8 +150,8 @@ class M3D_Config(BaseConfig):
     model_2D_emb = 128
     model_2D_pretrain_dir = "/home/output_model/resnet34-sGW2ep-PL-sc01-5ep/"
 
-    first = 128
-    ps = 0.1
+    first = 512
+    ps = 0.5
 
 
 # M-1D, M-1DS32, M-1DC16, M-SD16, M-SD32
@@ -161,6 +167,8 @@ class M_1D_Config(BaseConfig):
     optim = 'RangerLars'
     warmup = 0
     sdrop = 0.05
+
+    use_autocast = True
 
 
 class M_1D_Config_pretrain(M_1D_Config):
@@ -196,6 +204,8 @@ class M_1DC16_Config(BaseConfig):
     warmup = 0
     sdrop = 0.05
 
+    use_autocast = True
+
 
 class M_1DC16_Config_pretrain(M_1DC16_Config):
     checkpoint_folder = None
@@ -229,6 +239,8 @@ class M_1DS32_Config(BaseConfig):
     optim = 'RangerLars'
     warmup = 0
     sdrop = 0.05
+
+    use_autocast = True
 
 
 class M_1DS32_Config_pretrain(M_1DS32_Config):
@@ -265,6 +277,7 @@ class M_SD16_Config(BaseConfig):
     sdrop = 0.05
     proba_final_layer = 0.5
 
+    use_autocast = True
 
 class M_SD16_Config_pretrain(M_SD16_Config):
     checkpoint_folder = None
@@ -300,6 +313,7 @@ class M_SD32_Config(BaseConfig):
     sdrop = 0.05
     proba_final_layer = 0.5
 
+    use_autocast = True
 
 class M_SD32_Config_pretrain(M_SD32_Config):
     checkpoint_folder = None

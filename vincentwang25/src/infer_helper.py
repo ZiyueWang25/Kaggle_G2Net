@@ -112,7 +112,7 @@ def get_tta_df(df, model, Config):
     return df
 
 
-def get_oof_final(train_df, test_df, Config):
+def get_oof_final(train_df, Config):
     oof_all = pd.DataFrame()
     for fold in tqdm(Config.train_folds):
         if Config.model_module == "M3D":
@@ -124,10 +124,10 @@ def get_oof_final(train_df, test_df, Config):
             swa_model = AveragedModel(model)
             checkpoint = torch.load(f'{Config.model_output_folder}/Fold_{fold}_swa_model.pth')
             model = swa_model
-            model.load_state_dict(checkpoint['model_swa_state_dict'])
+            model.load_state_dict(removeDPModule(checkpoint['model_swa_state_dict']))
         else:
             checkpoint = torch.load(f'{Config.model_output_folder}/Fold_{fold}_best_model.pth')
-            model.load_state_dict(checkpoint['model_state_dict'])
+            model.load_state_dict(removeDPModule(checkpoint['model_state_dict']))
 
         model.to(device=Config.device)
         if Config.use_dp and torch.cuda.device_count() > 1:
@@ -154,6 +154,9 @@ def get_oof_final(train_df, test_df, Config):
     return CV_SCORE, oof_all
 
 
+def removeDPModule(state_dict):
+    return {key.replace("module.", ""): value for key, value in state_dict.items()}
+
 def get_test_avg(CV_SCORE, test_df, Config):
     test_df['target'] = 0
     test_avg = test_df[['id', 'target']].copy()
@@ -167,10 +170,10 @@ def get_test_avg(CV_SCORE, test_df, Config):
             swa_model = AveragedModel(model)
             checkpoint = torch.load(f'{Config.model_output_folder}/Fold_{fold}_swa_model.pth')
             model = swa_model
-            model.load_state_dict(checkpoint['model_swa_state_dict'])
+            model.load_state_dict(removeDPModule(checkpoint['model_swa_state_dict']))
         else:
             checkpoint = torch.load(f'{Config.model_output_folder}/Fold_{fold}_best_model.pth')
-            model.load_state_dict(checkpoint['model_state_dict'])
+            model.load_state_dict(removeDPModule(checkpoint['model_state_dict']))
         model.to(device=Config.device)
         if Config.use_dp and torch.cuda.device_count() > 1:
             model = nn.DataParallel(model)

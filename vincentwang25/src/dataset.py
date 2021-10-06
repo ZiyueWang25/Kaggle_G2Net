@@ -55,7 +55,7 @@ class DataRetrieverTest(Dataset):
 
     def __getitem__(self, index):
         path = self.paths[index]
-        waves = np.load(path)
+        waves = np.load(path).astype(np.float32)
         target = self.targets[index]
         if self.transforms is not None:
             waves = self.transforms(waves, sample_rate=2048)
@@ -64,7 +64,7 @@ class DataRetrieverTest(Dataset):
         return (x, target)
 
 
-def generate_PL(fold, train_df, test_df, Config):
+def generate_PL(fold, train_df, Config):
     if Config.PL_folder is None:
         return train_df
     pseudo_label_df = pd.read_csv(Config.PL_folder + f"test_Fold_{fold}.csv")
@@ -87,15 +87,15 @@ def generate_PL(fold, train_df, test_df, Config):
 
 def read_synthetic(Config):
     print("Read Synthetic Data")
-    with open(Config.gdrive + '/GW_sim_300k.pkl', 'rb') as handle:
+    with open(Config.inputDataFolder + '/GW_sim_300k.pkl', 'rb') as handle:
         SIGNAL_DICT = pickle.load(handle)
     return SIGNAL_DICT
 
 
 def read_data(Config):
     print("Read Data")
-    train_df = pd.read_csv(Config.gdrive + '/training_labels.csv')
-    test_df = pd.read_csv(Config.gdrive + '/sample_submission.csv')
+    train_df = pd.read_csv(Config.kaggleDataFolder + '/training_labels.csv')
+    test_df = pd.read_csv(Config.kaggleDataFolder + '/sample_submission.csv')
 
     if Config.debug:
         Config.epochs = 1
@@ -104,8 +104,8 @@ def read_data(Config):
     if Config.use_subset:
         train_df = train_df.sample(frac=Config.subset_frac, random_state=Config.seed).reset_index(drop=True)
 
-    train_df['file_path'] = train_df['id'].apply(lambda x: id_2_path_wave(x, Config.gdrive, True))
-    test_df['file_path'] = test_df['id'].apply(lambda x: id_2_path_wave(x, Config.gdrive, False))
+    train_df['file_path'] = train_df['id'].apply(lambda x: id_2_path_wave(x, Config.kaggleDataFolder, True))
+    test_df['file_path'] = test_df['id'].apply(lambda x: id_2_path_wave(x, Config.kaggleDataFolder, False))
 
     print("StratifiedKFold")
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=Config.seed)
