@@ -160,6 +160,7 @@ class M_1D_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
 
 
@@ -178,6 +179,7 @@ class M_1D_Config_adjust(M_1D_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -194,6 +196,7 @@ class M_1DC16_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
 
 
@@ -212,6 +215,7 @@ class M_1DC16_Config_adjust(M_1DC16_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -228,6 +232,7 @@ class M_1DS32_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
 
 
@@ -246,6 +251,7 @@ class M_1DS32_Config_adjust(M_1DS32_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -262,6 +268,7 @@ class M_SD16_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
     proba_final_layer = 0.5
 
@@ -281,6 +288,7 @@ class M_SD16_Config_adjust(M_SD16_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -297,6 +305,7 @@ class M_SD32_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
     proba_final_layer = 0.5
 
@@ -316,6 +325,7 @@ class M_SD32_Config_adjust(M_SD32_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
