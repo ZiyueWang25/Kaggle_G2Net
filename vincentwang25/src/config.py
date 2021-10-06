@@ -287,7 +287,7 @@ class M_SD16_Config_adjust(M_SD16_Config):
 
 
 class M_SD32_Config(BaseConfig):
-    model_version = "M-SD16"
+    model_version = "M-SD32"
     model_module = "V2SD"
     vflip = True
     shuffle01 = True

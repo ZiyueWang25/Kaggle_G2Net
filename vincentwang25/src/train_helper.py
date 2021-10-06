@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch import nn
+from torch.optim.swa_utils import update_bn
 
 from .util import *
 from .dataset import *
@@ -84,14 +85,13 @@ def run_fold(fold, original_train_df, test_df, Config,
         print(f"Load Checkpoint from folder: {Config.checkpoint_folder}")
         checkpoint = torch.load(f'{Config.checkpoint_folder}/Fold_{fold}_best_model.pth')
         model.load_state_dict(checkpoint['model_state_dict'])
-        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         best_valid_score = float(checkpoint['best_valid_score'])
+
     if Config.use_swa:
         print("Use SWA")
         swa_model, swa_scheduler = get_swa(model, optimizer, Config.epochs, Config.swa_start_step_epoch, Config.swa_lr,
                                            len(train_X), Config.batch_size)
 
-    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs, Config.warmup)
     criterion = rank_loss if Config.crit == 'rank' else F.binary_cross_entropy_with_logits
 
     trainer = Trainer(model, Config.device, optimizer, criterion, scheduler, valid_labels,
