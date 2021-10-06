@@ -68,6 +68,7 @@ class BaseConfig:
     proba_final_layer = 0.8
     sdrop = 0
     PL_hard = False
+    synthetic = False
 
 
 class V2_Config(BaseConfig):
@@ -89,6 +90,7 @@ class V2_Config_pretrain(V2_Config):
     PL_folder = None
     epochs = 2
     wandb_post = "_pretrain"
+    synthetic = True
 
 
 class V2SD_Config(BaseConfig):
@@ -107,6 +109,7 @@ class V2SD_Config_pretrain(V2SD_Config):
     PL_folder = None
     epochs = 2
     wandb_post = "_pretrain"
+    synthetic = True
 
 
 class resnet34_Config(BaseConfig):
@@ -125,6 +128,7 @@ class resnet34_Config_pretrain(resnet34_Config):
     PL_folder = None
     epochs = 2
     wandb_post = "_pretrain"
+    synthetic = True
 
 
 class M3D_Config(BaseConfig):
@@ -166,6 +170,7 @@ class M_1D_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
 
     use_autocast = True
@@ -178,6 +183,7 @@ class M_1D_Config_pretrain(M_1D_Config):
     wandb_post = "_pretrain"
     optim = 'Adam'
     warmup = 0.1
+    synthetic = True
 
 
 class M_1D_Config_adjust(M_1D_Config):
@@ -186,6 +192,7 @@ class M_1D_Config_adjust(M_1D_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -202,6 +209,7 @@ class M_1DC16_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
 
     use_autocast = True
@@ -214,6 +222,7 @@ class M_1DC16_Config_pretrain(M_1DC16_Config):
     wandb_post = "_pretrain"
     optim = 'Adam'
     warmup = 0.1
+    synthetic = True
 
 
 class M_1DC16_Config_adjust(M_1DC16_Config):
@@ -222,6 +231,7 @@ class M_1DC16_Config_adjust(M_1DC16_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -238,6 +248,7 @@ class M_1DS32_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
 
     use_autocast = True
@@ -250,6 +261,7 @@ class M_1DS32_Config_pretrain(M_1DS32_Config):
     wandb_post = "_pretrain"
     optim = 'Adam'
     warmup = 0.1
+    synthetic = True
 
 
 class M_1DS32_Config_adjust(M_1DS32_Config):
@@ -258,6 +270,7 @@ class M_1DS32_Config_adjust(M_1DS32_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -274,18 +287,21 @@ class M_SD16_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
     proba_final_layer = 0.5
 
     use_autocast = True
 
 class M_SD16_Config_pretrain(M_SD16_Config):
+    model_module = "V2" #do pretraining without stochastic depth
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
     wandb_post = "_pretrain"
     optim = 'Adam'
     warmup = 0.1
+    synthetic = True
 
 
 class M_SD16_Config_adjust(M_SD16_Config):
@@ -294,6 +310,7 @@ class M_SD16_Config_adjust(M_SD16_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
@@ -310,18 +327,21 @@ class M_SD32_Config(BaseConfig):
     epochs = 6
     optim = 'RangerLars'
     warmup = 0
+    lr = 7e-3
     sdrop = 0.05
     proba_final_layer = 0.5
 
     use_autocast = True
 
 class M_SD32_Config_pretrain(M_SD32_Config):
+    model_module = "V2"
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
     wandb_post = "_pretrain"
     optim = 'Adam'
     warmup = 0.1
+    synthetic = True
 
 
 class M_SD32_Config_adjust(M_SD32_Config):
@@ -330,6 +350,7 @@ class M_SD32_Config_adjust(M_SD32_Config):
     wandb_post = "_adjust"
     optim = 'RangerLars'
     warmup = 0
+    lr = 2e-4
     crit = 'rank'
     PL_hard = True
     sdrop = 0
