@@ -281,6 +281,7 @@ class M_SD16_Config(BaseConfig):
 
 
 class M_SD16_Config_pretrain(M_SD16_Config):
+    model_module = "V2" #do pretraining without stochastic depth
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -319,6 +320,7 @@ class M_SD32_Config(BaseConfig):
 
 
 class M_SD32_Config_pretrain(M_SD32_Config):
+    model_module = "V2"
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
