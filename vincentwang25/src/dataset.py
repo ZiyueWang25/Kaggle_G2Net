@@ -68,7 +68,7 @@ def generate_PL(fold, train_df, Config):
     if Config.PL_folder is None:
         return train_df
     pseudo_label_df = pd.read_csv(Config.PL_folder + f"test_Fold_{fold}.csv")
-    pseudo_label_df['file_path'] = pseudo_label_df['id'].apply(lambda x: id_2_path_wave(x, Config.gdrive, False))
+    pseudo_label_df['file_path'] = pseudo_label_df['id'].apply(lambda x: id_2_path_wave(x, Config.kaggleDataFolder, False))
     pseudo_label_df["target"] = pseudo_label_df[f'preds_Fold_{fold}']
     test_df_2 = pseudo_label_df.copy()
     test_df_2['fold'] = -1

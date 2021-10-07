@@ -40,38 +40,6 @@ class Extractor(nn.Sequential):
         )
 
 
-class ResBlockGeM(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, downsample=1, act=nn.SiLU(inplace=True)):
-        super().__init__()
-        self.act = act
-        if downsample != 1 or in_channels != out_channels:
-            self.residual_function = nn.Sequential(
-                nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
-                nn.BatchNorm1d(out_channels),
-                act,
-                nn.Conv1d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
-                nn.BatchNorm1d(out_channels),
-                GeM(kernel_size=downsample),  # downsampling
-            )
-            self.shortcut = nn.Sequential(
-                nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
-                nn.BatchNorm1d(out_channels),
-                GeM(kernel_size=downsample),  # downsampling
-            )  # skip layers in residual_function, can try simple MaxPool1d
-        else:
-            self.residual_function = nn.Sequential(
-                nn.Conv1d(in_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
-                nn.BatchNorm1d(out_channels),
-                act,
-                nn.Conv1d(out_channels, out_channels, kernel_size=kernel_size, padding=kernel_size // 2, bias=False),
-                nn.BatchNorm1d(out_channels),
-            )
-            self.shortcut = nn.Sequential()
-
-    def forward(self, x):
-        return self.act(self.residual_function(x) + self.shortcut(x))
-
-
 class StochasticDepthResBlockGeM(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, downsample=1, act=nn.SiLU(inplace=False), p=1):
         super().__init__()
@@ -156,68 +124,6 @@ def to_Mish(model):
         else:
             to_Mish(child)
 
-
-class ModelIafossV2(nn.Module):
-    def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=True), ps=0.5, use_raw_wave=False, sdrop=0, avrSpecDir="/home/data/", **kwarg):
-        super().__init__()
-        self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load(avrSpecDir+"avr_w0.pth"), requires_grad=False)
-        self.use_raw_wave = use_raw_wave
-
-        self.sdrop = nn.Dropout(sdrop)
-        self.ex = nn.ModuleList([
-            nn.Sequential(Extractor(1, n, 127, maxpool=2, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, downsample=4, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, act=act)),
-            nn.Sequential(Extractor(1, n, 127, maxpool=2, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, downsample=4, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, act=act))
-        ])
-        self.conv1 = nn.ModuleList([
-            nn.Sequential(
-                ResBlockGeM(1 * n, 1 * n, kernel_size=31, downsample=4, act=act),  # 512
-                ResBlockGeM(1 * n, 1 * n, kernel_size=31, act=act)),
-            nn.Sequential(
-                ResBlockGeM(1 * n, 1 * n, kernel_size=31, downsample=4, act=act),  # 512
-                ResBlockGeM(1 * n, 1 * n, kernel_size=31, act=act)),
-            nn.Sequential(
-                ResBlockGeM(3 * n, 3 * n, kernel_size=31, downsample=4, act=act),  # 512
-                ResBlockGeM(3 * n, 3 * n, kernel_size=31, act=act)),  # 128
-        ])
-        self.conv2 = nn.Sequential(
-            ResBlockGeM(6 * n, 4 * n, kernel_size=15, downsample=4, act=act),
-            ResBlockGeM(4 * n, 4 * n, kernel_size=15, act=act),  # 128
-            ResBlockGeM(4 * n, 8 * n, kernel_size=7, downsample=4, act=act),  # 32
-            ResBlockGeM(8 * n, 8 * n, kernel_size=7, act=act),  # 8
-        )
-        self.head = nn.Sequential(AdaptiveConcatPool1d(), nn.Flatten(),
-                                  nn.Linear(n * 8 * 2, nh), nn.BatchNorm1d(nh), nn.Dropout(ps), act,
-                                  nn.Linear(nh, nh), nn.BatchNorm1d(nh), nn.Dropout(ps), act,
-                                  nn.Linear(nh, 1),
-                                  )
-
-    def forward(self, x):
-        if self.use_raw_wave:
-            # !!
-            with torch.no_grad():
-                with torch.cuda.amp.autocast(enabled=False):
-                    shape = x.shape
-                    c = x.view(shape[0] * shape[1], -1)
-                    c = torch.cat([-c.flip(-1)[:, 4096 - 2049:-1] + 2 * c[:, 0].unsqueeze(-1), c,
-                                   -c.flip(-1)[:, 1:2049] + 2 * c[:, -1].unsqueeze(-1)], 1)
-                    avr_spec = self.avr_spec.repeat(shape[0], 1).view(-1, self.avr_spec.shape[-1])
-                    x = torch.fft.ifft(torch.fft.fft(c * self.window) * self.sdrop(1.0 / avr_spec)).real
-                    x = x.view(shape[0], shape[1], x.shape[-1])
-                    x = x[:, :, 2048:-2048]
-
-        x0 = [self.ex[0](x[:, 0].unsqueeze(1)), self.ex[0](x[:, 1].unsqueeze(1)),
-              self.ex[1](x[:, 2].unsqueeze(1))]
-        x1 = [self.conv1[0](x0[0]), self.conv1[0](x0[1]), self.conv1[1](x0[2]),
-              self.conv1[2](torch.cat([x0[0], x0[1], x0[2]], 1))]
-        x2 = torch.cat(x1, 1)
-        return self.head(self.conv2(x2))
-
-
 class V2StochasticDepth(nn.Module):  # stocnot on ex
     def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=False), ps=0.5, proba_final_layer=0.5, use_raw_wave=False,
                  sdrop=0, avrSpecDir="/home/data/", **kwarg):
@@ -229,16 +135,14 @@ class V2StochasticDepth(nn.Module):  # stocnot on ex
         self.sdrop = nn.Dropout(sdrop)
         self.ex = nn.ModuleList([
             nn.Sequential(Extractor(1, n, 127, maxpool=2, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, downsample=4, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, act=act)),
+                          StochasticDepthResBlockGeM(n, n, kernel_size=31, downsample=4, act=act, p=1),
+                          StochasticDepthResBlockGeM(n, n, kernel_size=31, act=act, p=1)),
             nn.Sequential(Extractor(1, n, 127, maxpool=2, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, downsample=4, act=act),
-                          ResBlockGeM(n, n, kernel_size=31, act=act))
+                          StochasticDepthResBlockGeM(n, n, kernel_size=31, downsample=4, act=act, p=1),
+                          StochasticDepthResBlockGeM(n, n, kernel_size=31, act=act, p=1))
         ])
 
         num_block = 10
-        # self.proba_step = (1-proba_final_layer)/(num_block-1)
-        # self.survival_proba = [1-i*self.proba_step for i in range(num_block)]
         self.proba_step = (1 - proba_final_layer) / (num_block)
         self.survival_proba = [1 - i * self.proba_step for i in range(1, num_block + 1)]
 
@@ -259,8 +163,7 @@ class V2StochasticDepth(nn.Module):  # stocnot on ex
         self.conv2 = nn.Sequential(
             StochasticDepthResBlockGeM(6 * n, 4 * n, kernel_size=15, downsample=4, act=act, p=self.survival_proba[6]),
             StochasticDepthResBlockGeM(4 * n, 4 * n, kernel_size=15, act=act, p=self.survival_proba[7]),  # 128
-            StochasticDepthResBlockGeM(4 * n, 8 * n, kernel_size=7, downsample=4, act=act, p=self.survival_proba[8]),
-            # 32
+            StochasticDepthResBlockGeM(4 * n, 8 * n, kernel_size=7, downsample=4, act=act, p=self.survival_proba[8]),# 32
             StochasticDepthResBlockGeM(8 * n, 8 * n, kernel_size=7, act=act, p=self.survival_proba[9]),  # 8
         )
         self.head = nn.Sequential(AdaptiveConcatPool1d(), nn.Flatten(),
@@ -271,7 +174,6 @@ class V2StochasticDepth(nn.Module):  # stocnot on ex
 
     def forward(self, x):
         if self.use_raw_wave:
-            # !!
             with torch.no_grad():
                 with torch.cuda.amp.autocast(enabled=False):
                     shape = x.shape

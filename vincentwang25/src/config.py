@@ -10,7 +10,7 @@ class BaseConfig:
     kaggleDataFolder = '/home/g2net-gravitational-wave-detection/'
     output_dir = "/home/output_model/"
     inputDataFolder = "/home/data/"
-    PL_folder = "/home/data/PL_folder/"
+    PL_folder = "/home/data/PL_fold/"
     use_raw_wave = True
     use_checkpoint = False
     prev_model_folder = None
@@ -73,7 +73,7 @@ class BaseConfig:
 
 class V2_Config(BaseConfig):
     model_version = "V2_c16_sGW_vflip_sc01_PL"
-    model_module = "V2"
+    model_module = "V2SD"
     vflip = True
     shuffle01 = True
     use_MC = True
@@ -83,6 +83,8 @@ class V2_Config(BaseConfig):
     lr = 7e-3
     checkpoint_folder = True
     epochs = 6
+    proba_final_layer = 1
+
 
 
 class V2_Config_pretrain(V2_Config):
@@ -102,6 +104,7 @@ class V2SD_Config(BaseConfig):
 
     checkpoint_folder = True
     epochs = 6
+    proba_final_layer = 0.5
 
 
 class V2SD_Config_pretrain(V2SD_Config):
@@ -137,7 +140,6 @@ class M3D_Config(BaseConfig):
 
     vflip = True
     shuffle01 = True
-    use_MC = False
     MC_folds = 64
 
     lr = 5e-3
@@ -161,10 +163,11 @@ class M3D_Config(BaseConfig):
 # M-1D, M-1DS32, M-1DC16, M-SD16, M-SD32
 class M_1D_Config(BaseConfig):
     model_version = "M-1D"
-    model_module = "V2"
+    model_module = "V2SD"
     vflip = True
     shuffle01 = True
     channels = 32
+    use_MC = True
 
     checkpoint_folder = True
     epochs = 6
@@ -174,6 +177,7 @@ class M_1D_Config(BaseConfig):
     sdrop = 0.05
 
     use_autocast = True
+    proba_final_layer = 1
 
 
 class M_1D_Config_pretrain(M_1D_Config):
@@ -200,10 +204,11 @@ class M_1D_Config_adjust(M_1D_Config):
 
 class M_1DC16_Config(BaseConfig):
     model_version = "M-1DC16"
-    model_module = "V2"
+    model_module = "V2SD"
     vflip = True
     shuffle01 = True
     channels = 16
+    use_MC = True
 
     checkpoint_folder = True
     epochs = 6
@@ -213,7 +218,7 @@ class M_1DC16_Config(BaseConfig):
     sdrop = 0.05
 
     use_autocast = True
-
+    proba_final_layer = 1
 
 class M_1DC16_Config_pretrain(M_1DC16_Config):
     checkpoint_folder = None
@@ -243,6 +248,7 @@ class M_1DS32_Config(BaseConfig):
     vflip = True
     shuffle01 = True
     channels = 32
+    use_MC = True
 
     checkpoint_folder = True
     epochs = 6
@@ -282,6 +288,7 @@ class M_SD16_Config(BaseConfig):
     vflip = True
     shuffle01 = True
     channels = 16
+    use_MC = True
 
     checkpoint_folder = True
     epochs = 6
@@ -294,7 +301,6 @@ class M_SD16_Config(BaseConfig):
     use_autocast = True
 
 class M_SD16_Config_pretrain(M_SD16_Config):
-    model_module = "V2" #do pretraining without stochastic depth
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -302,6 +308,7 @@ class M_SD16_Config_pretrain(M_SD16_Config):
     optim = 'Adam'
     warmup = 0.1
     synthetic = True
+    proba_final_layer = 1 #do pretraining without stochastic depth
 
 
 class M_SD16_Config_adjust(M_SD16_Config):
@@ -321,6 +328,7 @@ class M_SD32_Config(BaseConfig):
     model_module = "V2SD"
     vflip = True
     shuffle01 = True
+    use_MC = True
     channels = 32
 
     checkpoint_folder = True
@@ -334,7 +342,6 @@ class M_SD32_Config(BaseConfig):
     use_autocast = True
 
 class M_SD32_Config_pretrain(M_SD32_Config):
-    model_module = "V2"
     checkpoint_folder = None
     PL_folder = None
     epochs = 4
@@ -342,6 +349,7 @@ class M_SD32_Config_pretrain(M_SD32_Config):
     optim = 'Adam'
     warmup = 0.1
     synthetic = True
+    proba_final_layer = 1 #do pretraining without stochastic depth
 
 
 class M_SD32_Config_adjust(M_SD32_Config):

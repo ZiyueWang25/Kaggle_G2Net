@@ -7,6 +7,8 @@ from torch import nn
 
 
 def get_before_head(x, model):
+    if isinstance(model, nn.DataParallel):
+        model = model.module
     with torch.no_grad():
         with torch.cuda.amp.autocast(enabled=False):
             shape = x.shape
@@ -26,6 +28,8 @@ def get_before_head(x, model):
 
 
 def get_pred(loader, model, device, use_MC=False, MC_folds=64):
+    if isinstance(model, nn.DataParallel):
+        model = model.module
     if use_MC:
         model.head[4].train()
         model.head[8].train()
@@ -104,9 +108,11 @@ def get_tta_df(df, model, Config):
         df["tta_vflip"] = get_tta_pred(df, model, Config, use_vflip=True)
     if Config.shuffle01:
         df["tta_shuffle01"] = get_tta_pred(df, model, Config, shuffle01=True)
+    if Config.vflip and Config.shuffle01:
+        df["tta_vflip_shuffle01"] = get_tta_pred(df, model, Config, use_vflip=True, shuffle01=True)
+
     # df["tta_shift"] = get_tta_pred(df,model,time_shift=True)
     # df["tta_vflip_shift"] = get_tta_pred(df,model,use_vflip=True,time_shift=True)
-    # df["tta_vflip_shuffle01"] = get_tta_pred(df,model,use_vflip=True,shuffle01=True)
     # df["tta_shift_shuffle01"] = get_tta_pred(df,model,time_shift=True,shuffle01=True)
     # df["tta_vflip_shift_shuffle01"] = get_tta_pred(df,model,use_vflip=True,time_shift=True,shuffle01=True)
     return df
