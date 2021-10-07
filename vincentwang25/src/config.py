@@ -39,7 +39,7 @@ class BaseConfig:
     wandb_project = "G2Net_Rep"
     wandb_key_path = "/home/key/key.txt"
     # training related
-    train_folds = [0]
+    train_folds = [0, 1, 2, 3, 4]
     optim = 'Adam'
     warmup = 0.1
     crit = 'bce'
