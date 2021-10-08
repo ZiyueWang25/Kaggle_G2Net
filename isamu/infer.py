@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# ## Config
+
 # In[1]:
 
 
-from src.config import OUTPUT_PATH, INPUT_PATH, DATA_PATH
+from src.config import OUTPUT_PATH, INPUT_PATH, DATA_PATH, MODEL_PATH
 from src.utils import prepare_args
 
-
-# # Config
 
 # In[2]:
 
@@ -18,6 +18,12 @@ print ('config=', config)
 
 
 # In[3]:
+
+
+config.debug
+
+
+# In[4]:
 
 
 MODEL_NAME= config.model_name
@@ -57,49 +63,32 @@ LABEL_POSITIVE_SHIFT = 1.0
 TTA = config.tta
 
 SEED = config.seed
-WHITE=True
 
-# G2Net SKF(Stratified KFold) dataset
-# gs-path were generated from https://www.kaggle.com/yamsam/g2net-skf-path
-# tf reccords Dataset are stored in https://www.kaggle.com/vincentwang25/g2net-skf
-
-#FILES =['gs://kds-545de03072f7f12c036f4c687111566f0a27586e55b81c3a5ee34eff']
 # https://www.kaggle.com/yamsam/g2net-tf-on-the-fly-cqt-tpu-inference-path
-FILES =[
-    f'{INPUT_PATH}/train_tfrecord'
+FILES_TEST =[
+    f'{INPUT_PATH}/test_tfrecord'
 ]
 
-# Pseudo Label dataset
-# gs-path were generated from  https://www.kaggle.com/yamsam/g2net-tpu-soft-pseudo-path
-# tf reccords Dataset are stored in https://www.kaggle.com/yamsam/g2net-public-s-01, https://www.kaggle.com/yamsam/g2net-public-s-02
-#PFILES = ['gs://kds-bc6ce0467b324bf699c0f253c26655b210f3d84d5f73624eecd9f0c9', 
-#          'gs://kds-2d2718f40449c5e3ad78362852d1ac9328d70f6cdf5ed5f2c4d6edd1']
+DEBUG=config.debug
 
-PFILES = [ f'{INPUT_PATH}/pseudo_tfrecord']
-
-DEBUG = config.debug
-
-if not config.use_pseudo:
-    PFILES=[] # set [], if you do not use pseudo labeling dataset
-    
 if DEBUG:
-#    FOLDS=[0]
-    EPOCHS = 1
+    TTA=False
+    FOLDS=[0]
+    print (FOLDS)
     IMAGE_SIZE = 32
     if TFHUB_MODEL:
         IMAGE_SIZE = 128 # 32 is not working with V3
     
     BATCH_SIZE = 32
-    PFILES=[]
 
 
-# In[4]:
+# In[5]:
 
 
 #get_ipython().system('pip install efficientnet tensorflow_addons > /dev/null')
 
 
-# In[5]:
+# In[6]:
 
 
 import os
@@ -118,15 +107,13 @@ import pandas as pd
 import seaborn as sns
 import tensorflow as tf
 import tensorflow_addons as tfa
-
+#from kaggle_datasets import KaggleDatasets
 from scipy.signal import get_window
 from sklearn.model_selection import KFold
 from sklearn.metrics import roc_auc_score
 
-from tensorflow import keras
 from tensorflow.keras import mixed_precision
 import tensorflow_hub as hub
-
 
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
@@ -136,27 +123,22 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 
-# In[6]:
-
-
-print('tf=', tf.__version__)
-
-
 # In[7]:
 
 
-SAVEDIR = OUTPUT_PATH / MODEL_NAME 
-SAVEDIR.mkdir(exist_ok=True)
-
-OOFDIR = OUTPUT_PATH / MODEL_NAME 
-OOFDIR.mkdir(exist_ok=True)
-
-print ('SAVEDIR=', SAVEDIR, 'OOFDIR=', OOFDIR)
+print('tf:',tf.__version__)
 
 
 # ## Utilities
 
 # In[8]:
+
+
+if not os.path.exists(OUTPUT_PATH):
+    os.makedirs(OUTPUT_PATH)
+
+
+# In[9]:
 
 
 def set_seed(seed=42):
@@ -165,10 +147,11 @@ def set_seed(seed=42):
     np.random.seed(seed)
     tf.random.set_seed(seed)
 
+
 set_seed(SEED)
 
 
-# In[9]:
+# In[10]:
 
 
 def auto_select_accelerator():
@@ -191,18 +174,12 @@ def auto_select_accelerator():
         TPU_DETECTED = True
     except ValueError:
         strategy = tf.distribute.get_strategy()
-        
-        
     print(f"Running on {strategy.num_replicas_in_sync} replicas")
-    
-#     if MIXED:
-#         policy = mixed_precision.Policy('mixed_bfloat16')
-#         mixed_precision.set_global_policy(policy)
-#         print ('using mixed precisison')
+
     return strategy, TPU_DETECTED
 
 
-# In[10]:
+# In[11]:
 
 
 strategy, tpu_detected = auto_select_accelerator()
@@ -212,53 +189,31 @@ REPLICAS = strategy.num_replicas_in_sync
 
 # ## Data Loading
 
-# In[11]:
-
-
-gcs_paths = []
-for file in FILES:
-    gcs_paths.append(file)
-    print(file)
-
-
 # In[12]:
 
 
-fold_files = []
-for path in gcs_paths:
-    for foldi in range(5):
-        folds = []
-        folds.extend(np.sort(np.array(tf.io.gfile.glob(path + f"/tr{foldi}_*.tfrecords")))) # !!!
-        fold_files.append(folds)
-
-        print(f"train_files fold{foldi}: ", len(folds))
+gcs_paths = []
+for file in FILES_TEST:
+    gcs_paths.append(file)
+    print(file)
 
 
 # In[13]:
 
 
-p_gcs_paths = []
-for file in PFILES:
-    p_gcs_paths.append(file)
-    print(file)
+all_files = []
 
+for path in gcs_paths:
+    all_files.extend(np.sort(np.array(tf.io.gfile.glob(path + f"/*.tfrecords"))))
 
-# In[14]:
-
-
-pseudo_files = []
-
-for path in p_gcs_paths:
-  pseudo_files.extend(np.sort(np.array(tf.io.gfile.glob(path + f"/*.tfrecords")))) # !!!
-
-print(f"pseudo_files: ", len(pseudo_files))
+print('test_files: ', len(all_files))
 
 
 # ## Dataset Preparation
 # 
 # Here's the main contribution of this notebook - Tensorflow version of on-the-fly CQT computation. Note that some of the operations used in CQT computation are not supported by TPU, therefore the implementation is not a TF layer but a function that runs on CPU.
 
-# In[15]:
+# In[14]:
 
 
 def create_cqt_kernels(
@@ -312,6 +267,7 @@ def create_cqt_kernels(
 def _nextpow2(a: float) -> int:
     return int(np.ceil(np.log2(a)))
 
+
 def prepare_cqt_kernel(
     sr=22050,
     hop_length=512,
@@ -328,7 +284,7 @@ def prepare_cqt_kernel(
     return create_cqt_kernels(q, sr, fmin, n_bins, bins_per_octave, norm, window, fmax)
 
 
-# In[16]:
+# In[15]:
 
 
 
@@ -350,12 +306,13 @@ PADDING = tf.constant([[0, 0],
                         [0, 0]])
 
 
-# In[17]:
+# In[16]:
 
 
+ORDER=[0,0,0]
 def create_cqt_image(wave, hop_length=16):
     CQTs = []
-    for i in range(3):
+    for i in ORDER:
         x = wave[i][ST:EN]
         x = tf.expand_dims(tf.expand_dims(x, 0), 2)
         x = tf.pad(x, PADDING, "REFLECT")
@@ -370,7 +327,7 @@ def create_cqt_image(wave, hop_length=16):
     return tf.stack(CQTs, axis=2)
 
 
-# In[18]:
+# In[17]:
 
 
 def read_labeled_tfrecord(example):
@@ -496,8 +453,7 @@ def whiten(c):
 def prepare_image(wave, dim=256):
     wave = tf.reshape(tf.io.decode_raw(wave, tf.float64), (3, 4096))
     #wave = tf.cast(wave, tf.float32)
-    if WHITE:
-      wave = whiten(wave)
+    wave = whiten(wave)
     # normalized_waves = []
     # for i in range(3):
     #     normalized_wave = wave[i] - means[i]
@@ -520,7 +476,7 @@ def get_dataset(files, batch_size=16, repeat=False, shuffle=False, aug=True, lab
         ds = ds.repeat()
 
     if shuffle:
-        ds = ds.shuffle(1024 * 10, reshuffle_each_iteration=True)
+        ds = ds.shuffle(1024 * 2)
         opt = tf.data.Options()
         opt.experimental_deterministic = False
         ds = ds.with_options(opt)
@@ -537,55 +493,9 @@ def get_dataset(files, batch_size=16, repeat=False, shuffle=False, aug=True, lab
     return ds
 
 
-# # soft pseudo labeling dateaset
-
-# In[19]:
-
-
-def logit(x):
-  return -tf.math.log(1./x - 1.)
-
-def read_softlabeled_tfrecord(example):
-    tfrec_format = {
-        "wave": tf.io.FixedLenFeature([], tf.string),
-        "wave_id": tf.io.FixedLenFeature([], tf.string),
-        "target": tf.io.FixedLenFeature([], tf.float32)
-    }
-    example = tf.io.parse_single_example(example, tfrec_format)
-
-    label = tf.cast(example["target"], tf.float32)
-    temperature = 2
-
-#     if HARDEN and label > 0.75: # Only harden confident positives
-#       label = tf.math.sigmoid(logit(label) * temperature)
-
-    return prepare_image(example["wave"], IMAGE_SIZE), tf.reshape(label, [1])
-
-
-def get_soft_dataset(files, batch_size=16, repeat=False, shuffle=False, aug=True, labeled=True, return_image_ids=True):
-    ds = tf.data.TFRecordDataset(files, num_parallel_reads=AUTO, compression_type="GZIP")
-    ds = ds.cache()
-
-    if repeat:
-        ds = ds.repeat()
-
-    if shuffle:
-        ds = ds.shuffle(1024 * 10, reshuffle_each_iteration=True)
-        opt = tf.data.Options()
-        opt.experimental_deterministic = False
-        ds = ds.with_options(opt)
-
-    ds = ds.map(read_softlabeled_tfrecord, num_parallel_calls=AUTO)
-    ds = ds.batch(batch_size * REPLICAS)
-    if aug:
-        ds = ds.map(lambda x, y: aug_f(x, y, batch_size * REPLICAS), num_parallel_calls=AUTO)
-    ds = ds.prefetch(AUTO)
-    return ds
-
-
 # ## Model
 
-# In[20]:
+# In[18]:
 
 
 def build_model(size=256, efficientnet_size=0, weights="imagenet", count=0):
@@ -614,7 +524,7 @@ def build_model(size=256, efficientnet_size=0, weights="imagenet", count=0):
     return model
 
 
-# In[21]:
+# In[19]:
 
 
 def get_lr_callback(batch_size=8, replicas=8):
@@ -641,7 +551,7 @@ def get_lr_callback(batch_size=8, replicas=8):
     return lr_callback
 
 
-# In[22]:
+# In[20]:
 
 
 #plot
@@ -680,217 +590,133 @@ def display_9_images_from_dataset(dataset):
     plt.show()  
 
 
+# ## Inference
+
+# In[21]:
+
+
+files_test_all = np.array(all_files)
+all_test_preds = []
+
+
+# In[22]:
+
+
+if DEBUG:
+    files_test_all = [files_test_all[0]]
+    print('debug:only use 1file', files_test_all)
+
+
 # In[23]:
 
 
-fold_files[0]
+# def count_data_items(filenames): 
+#     # The number of data items is written in the name of the .tfrec files, i.e. flowers00-230.tfrec = 230 data items
+#     n = [int(re.compile(r"-([0-9]*)\.").search(filename).group(1)) for filename in filenames]
+#     return np.sum(n)
+
+# count_data_items_test = count_data_items
+
+# #for arais dataset
+# def count_data_items(fileids):
+#     return len(fileids) * 5600 # 28000
+
+def count_data_items_test(fileids):
+    return len(fileids) * 22600
+
+print (count_data_items_test(files_test_all))
 
 
 # In[24]:
 
 
-# plot CQT images
-ds = get_dataset(fold_files[0], labeled=True, return_image_ids=False, repeat=False, shuffle=True, batch_size=BATCH_SIZE * 2, aug=True)
-display_9_images_from_dataset(ds)
+len(files_test_all)
 
-
-# ## Training
 
 # In[25]:
 
 
-oof_pred = []
-oof_target = []
-oof_ids = []
-
-files_train_all = np.array(fold_files)
-
-
-# In[ ]:
+with strategy.scope():
+    model = build_model(
+        size=IMAGE_SIZE,
+        efficientnet_size=EFFICIENTNET_SIZE,
+        weights=WEIGHTS,
+        count=0)
 
 
+# In[26]:
 
 
+FOLDS
 
-# In[ ]:
+
+# In[27]:
 
 
-for fold in FOLDS:
-    all_fold = range(NUM_FOLDS)
-    files_train = list(files_train_all[(np.delete(all_fold, fold))].reshape(-1)) 
-#    pseudo_files
-    files_valid = files_train_all[fold]
+ORDER=[0,1,2]
 
-    print("=" * 120)
-    print(f"Fold {fold}")
-    print("=" * 120)
+for i in FOLDS:
+    print(f"Load weight for Fold {i + 1} model")
+    model.load_weights(f"{MODEL_PATH}/{MODEL_NAME}/fold{i}.h5")
+    ds_test = get_dataset(files_test_all, batch_size=BATCH_SIZE * 2, repeat=True, shuffle=False, aug=False, labeled=False, return_image_ids=False)
+    STEPS = count_data_items_test(files_test_all) / BATCH_SIZE / 2 / REPLICAS
+    pred = model.predict(ds_test, verbose=1, steps=STEPS)[:count_data_items_test(files_test_all)]
 
-    train_image_count = count_data_items(files_train + pseudo_files) # check
-    valid_image_count = count_data_items(files_valid)
-    
-    print ('train files:', train_image_count, 'valid files:', valid_image_count)
+    all_test_preds.append(pred.reshape(-1))
 
-#    tf.keras.backend.clear_session()
-#    strategy, tpu_detected = auto_select_accelerator()
-    with strategy.scope():
-        model = build_model(
-            size=IMAGE_SIZE, 
-            efficientnet_size=EFFICIENTNET_SIZE,
-            weights=WEIGHTS, 
-            count=train_image_count // BATCH_SIZE // REPLICAS // 4)
-    
-    model_ckpt = tf.keras.callbacks.ModelCheckpoint(
-        str(SAVEDIR / f"fold{fold}.h5"), monitor="val_auc", verbose=1, save_best_only=True,
-        save_weights_only=True, mode="max", save_freq="epoch"
-    )
-
-    ds_train = get_dataset(files_train, batch_size=BATCH_SIZE, shuffle=True, repeat=True, aug=True)
-    
-
-    w = [(train_image_count - valid_image_count) / train_image_count, valid_image_count / train_image_count ]
-
-    if len(pseudo_files) > 0:
-      print ('using pseudo labeling', w)
-      ds_pseudo = get_soft_dataset(pseudo_files, batch_size=BATCH_SIZE, shuffle=True, repeat=True, aug=True)  
-      ds_train = tf.data.experimental.sample_from_datasets([ds_train, ds_pseudo], w)
-
-    history = model.fit(
-        ds_train,
-        epochs=EPOCHS,
-        callbacks=[model_ckpt, get_lr_callback(BATCH_SIZE, REPLICAS)],
-        steps_per_epoch=train_image_count // BATCH_SIZE // REPLICAS // 4,
-        validation_data=get_dataset(files_valid, batch_size=BATCH_SIZE * 4, repeat=False, shuffle=False, aug=False),
-        verbose=1
-    )
-    
-    del ds_train
     gc.collect()
+    tf.keras.backend.clear_session()
+    tf.compat.v1.reset_default_graph()
+
+
+# In[28]:
+
+
+if TTA:
+    ORDER=[1,0,2]
+
+    for i in FOLDS:
+        print(f"Load weight for Fold {i + 1} model")
+        model.load_weights(f"{MODEL_PATH}/{MODEL_NAME}/fold{i}.h5")
+
+        ds_test = get_dataset(files_test_all, batch_size=BATCH_SIZE * 2, repeat=True, shuffle=False, aug=False, labeled=False, return_image_ids=False)
+        STEPS = count_data_items_test(files_test_all) / BATCH_SIZE / 2 / REPLICAS
+        pred = model.predict(ds_test, verbose=1, steps=STEPS)[:count_data_items_test(files_test_all)]
+
+        all_test_preds.append(pred.reshape(-1))
+        
+        del model, ds_test
+
+        gc.collect()
+        tf.keras.backend.clear_session()
+        tf.compat.v1.reset_default_graph()
+        
+
+
+# In[29]:
+
+
+ds_test = get_dataset(files_test_all, batch_size=BATCH_SIZE * 2, repeat=False, shuffle=False, aug=False, labeled=False, return_image_ids=True)
+file_ids = np.array([target.numpy() for img, target in iter(ds_test.unbatch())])
+
+
+# In[30]:
+
+
+test_pred = np.zeros_like(all_test_preds[0])
+for i in range(len(all_test_preds)):
+    test_pred += all_test_preds[i] / len(all_test_preds)
     
-    print("Loading best model...")
-    model.load_weights(str(SAVEDIR / f"fold{fold}.h5"))
-
-    ds_valid = get_dataset(files_valid, labeled=False, return_image_ids=False, repeat=True, shuffle=False, batch_size=BATCH_SIZE * 2, aug=False)
-    STEPS = valid_image_count / BATCH_SIZE / 2 / REPLICAS
-    
-    pred = model.predict(ds_valid, steps=STEPS, verbose=0)[:valid_image_count]
-    print (pred.shape)
-    oof_pred.append(np.mean(pred.reshape((valid_image_count, 1), order="F"), axis=1))
-         
-    ds_valid = get_dataset(files_valid, batch_size=BATCH_SIZE * 2, repeat=False, labeled=True, return_image_ids=True, aug=False, shuffle=False)
-    oof_t = np.array([target.numpy() for _, target in iter(ds_valid.unbatch())])
-    oof_target.append(oof_t)
-
-    ds_valid = get_dataset(files_valid, batch_size=BATCH_SIZE * 2, repeat=False, shuffle=False, aug=False, labeled=False, return_image_ids=True)
-    file_ids = np.array([target.numpy() for _, target in iter(ds_valid.unbatch())])
-    oof_ids.append(file_ids)
-
-    print (pred.shape, oof_t.shape, file_ids.shape)
-
-    plt.figure(figsize=(8, 6))
-    sns.distplot(oof_pred[-1])
-    plt.show()
-
-    plt.figure(figsize=(15, 5))
-    plt.plot(
-        np.arange(len(history.history["auc"])),
-        history.history["auc"],
-        "-o",
-        label="Train auc",
-        color="#ff7f0e")
-    plt.plot(
-        np.arange(len(history.history["auc"])),
-        history.history["val_auc"],
-        "-o",
-        label="Val auc",
-        color="#1f77b4")
-    
-    x = np.argmax(history.history["val_auc"])
-    y = np.max(history.history["val_auc"])
-
-    xdist = plt.xlim()[1] - plt.xlim()[0]
-    ydist = plt.ylim()[1] - plt.ylim()[0]
-
-    plt.scatter(x, y, s=200, color="#1f77b4")
-    plt.text(x - 0.03 * xdist, y - 0.13 * ydist, f"max auc\n{y}", size=14)
-
-    plt.ylabel("auc", size=14)
-    plt.xlabel("Epoch", size=14)
-    plt.legend(loc=2)
-
-    plt2 = plt.gca().twinx()
-    plt2.plot(
-        np.arange(len(history.history["auc"])),
-        history.history["loss"],
-        "-o",
-        label="Train Loss",
-        color="#2ca02c")
-    plt2.plot(
-        np.arange(len(history.history["auc"])),
-        history.history["val_loss"],
-        "-o",
-        label="Val Loss",
-        color="#d62728")
-    
-    x = np.argmin(history.history["val_loss"])
-    y = np.min(history.history["val_loss"])
-    
-    ydist = plt.ylim()[1] - plt.ylim()[0]
-
-    plt.scatter(x, y, s=200, color="#d62728")
-    plt.text(x - 0.03 * xdist, y + 0.05 * ydist, "min loss", size=14)
-
-    plt.ylabel("Loss", size=14)
-    plt.title(f"Fold {fold + 1} - Image Size {IMAGE_SIZE}, EfficientNetB{EFFICIENTNET_SIZE}", size=18)
-
-    plt.legend(loc=3)
-    plt.savefig(OOFDIR / f"fig{fold}.png")
-    plt.show()
-    
-    del model, ds_valid, history
-    keras.backend.clear_session()
-    gc.collect()
-
-
-# ## OOF
-
-# In[ ]:
-
-
-oof = np.concatenate(oof_pred)
-oof_ids = np.concatenate(oof_ids)
-true = np.concatenate(oof_target)
-
-auc = roc_auc_score(y_true=true, y_score=oof)
-print(f"AUC: {auc:.5f}")
-
-
-# In[ ]:
-
-
-df = pd.DataFrame({
-    "id": [i.decode("UTF-8") for i in oof_ids],
-    "y_true": true.reshape(-1),
-    "y_pred": oof.astype(float)
+test_df = pd.DataFrame({
+    "id": [i.decode("UTF-8") for i in file_ids],
+    "target": test_pred.astype(float)
 })
-df.head()
+
+#test_df.head()
 
 
-# In[ ]:
+# In[31]:
 
 
-df.to_csv(OOFDIR / f"oof.csv", index=False)
-
-
-# In[ ]:
-
-
-df = pd.read_csv(OOFDIR / f"oof.csv")
-
-auc = roc_auc_score(y_true=true, y_score=oof)
-
-
-# In[ ]:
-
-
-print ('oof auc=', auc)
+test_df.to_csv(f"{OUTPUT_PATH}/{MODEL_NAME}/submission.csv", index=False)
 
