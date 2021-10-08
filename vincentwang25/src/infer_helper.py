@@ -35,7 +35,7 @@ def get_pred(loader, model, device, use_MC=False, MC_folds=64):
         model.head[8].train()
     preds = []
     for step, batch in enumerate(loader, 1):
-        if step % 100 == 0:
+        if step % 300 == 0:
             print("step {}/{}".format(step, len(loader)))
         with torch.no_grad():
             X = batch[0].to(device)

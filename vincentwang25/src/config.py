@@ -104,7 +104,7 @@ class V2SD_Config(BaseConfig):
 
     checkpoint_folder = True
     epochs = 6
-    proba_final_layer = 0.5
+    proba_final_layer = 0.8
 
 
 class V2SD_Config_pretrain(V2SD_Config):
