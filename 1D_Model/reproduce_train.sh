@@ -16,7 +16,6 @@ python train.py --model_config M-1D_pretrain
 python train.py --model_config M-1D
 python train.py --model_config M-1D_adjust
 
-
 python train.py --model_config M-1DC16_pretrain
 python train.py --model_config M-1DC16
 python train.py --model_config M-1DC16_adjust
@@ -28,3 +27,12 @@ python train.py --model_config M-SD16_adjust
 python train.py --model_config M-SD32_pretrain
 python train.py --model_config M-SD32
 python train.py --model_config M-SD32_adjust
+
+# from Richard
+python train.py --model_config R-35
+python train.py --model_config R-112
+python train.py --model_config R-120
+python train.py --model_config R-121
+python train.py --model_config R-122
+python train.py --model_config R-124
+python train.py --model_config R-133

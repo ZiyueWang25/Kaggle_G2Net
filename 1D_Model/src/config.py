@@ -11,6 +11,8 @@ class BaseConfig:
     output_dir = "../dataset/Models/"
     inputDataFolder = "../dataset/"
     PL_folder = "../dataset/PL_fold/"
+    whiten_train_folder = "../dataset/whiten-train-w0/"
+    whiten_test_folder = "../dataset/whiten-test-w0/"
     use_raw_wave = True
     use_checkpoint = False
     prev_model_folder = None
@@ -409,56 +411,208 @@ class R_aug(BaseConfig):
     cropping = False
 
 
-
 class R_base(R_aug):
-    model_version = "test2"
-    model_module = 'V2SD'
-    epochs = 12
-    lr = 5e-3
-    weight_decay = 0
-
+    use_raw_wave = False
+    do_advance_trans = True
     num_workers = 0
     continuous_exp = False
+    weight_decay = 0
+    epochs = 6
+    batch_size = 256
+    lr = 2e-3
+
+    #CNN structure
+    channels = 32
+    reduction = 1.0
+    proba_final_layer = 0.8
+    CBAM_SG_kernel_size = 15
+
+class Config_R35(R_base):
+    model_version = "main_35th_GeM_vflip_shuffle01_5fold"
+    model_module = 'Model1DCNNGEM'
+    PL_folder = None
     # augmentation
-    do_advance_trans = True
-    conservative_aug = ['vflip', 'shuffle01']
+    conservative_aug = ['vflip', 'shuffle01', ]
     aggressive_aug = []
     vflip = True
     vflip_proba = 0.5
     shuffle01 = True
     shuffle01_proba = 0.5
 
-    #CNN structure
-    channels = 32
-    reduction = 1.0
+    # training
+    epochs = 12
+    lr = 5e-3
+
+
+class Config_R112(R_base):
+    # frequently changed
+    model_version = "main_112th_V2SD_PL_6ep_5Fold"
+    model_module = 'V2SD'
+    PL_folder =  "../dataset/main_35th_GeM_vflip_shuffle01_5fold/"
+
+    # augmentation
+    conservative_aug = ['vflip', 'add_gaussian_noise']
+    aggressive_aug = []
+    vflip = True
+    vflip_proba = 0.5
+    add_gaussian_noise = True
+    add_gaussian_noise_proba = 0.5
+
+    # CNN structure
+    proba_final_layer = 0.8
+
+
+class Config_R120(R_base):
+    # frequently changed
+    model_version = "120th_V2_PL_6ep_1em3lr_32ch_vf_s01"
+    model_module = 'V2SD'
+    proba_final_layer = 1
+    use_pseudo_label = True
+    pseudo_label_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+    # conservative
+    conservative_aug = []
+    # aggressive, OneOf
+    aggressive_aug_proba = 0.75
+    aggressive_aug = ['vflip', 'add_gaussian_noise', 'shuffle01', 'timemask', 'time_shift', ]  # 'reduce_SNR'
+    vflip = True
+    vflip_weight = 1.0
+    add_gaussian_noise = False
+    add_gaussian_noise_weight = 1.0
+    timemask = False
+    timemask_weight = 1.0
+    shuffle01 = True
+    shuffle01_weight = 1.0
+    time_shift = False
+    time_shift_left = 96
+    time_shift_right = 96
+    time_shift_weight = 0.5
+    # training
+    batch_size = 64
+    lr = 1e-3
+
+
+class Config_R121(R_base):
+    # frequently changed
+    model_version = "121st_V2SD_PL_6ep_2em3lr_32ch_vf+gn+sc01+tm+ts"
+    model_module = 'V2SD'
+    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+
+    # conservative
+    conservative_aug = []
+    # aggressive, OneOf
+    aggressive_aug_proba = 0.80
+    aggressive_aug = ['vflip', 'add_gaussian_noise', 'shuffle01', 'timemask', 'time_shift', ]
+    vflip = True
+    vflip_weight = 1.0
+    add_gaussian_noise = True
+    add_gaussian_noise_weight = 1.0
+    timemask = True
+    timemask_weight = 0.8
+    shuffle01 = True
+    shuffle01_weight = 0.8
+    time_shift = True
+    time_shift_left = 96
+    time_shift_right = 96
+    time_shift_weight = 0.4
+
+
+class Config_R122(R_base):
+    # frequently changed
+    model_version = "122nd_V2_PL_6ep_2em3lr_32ch_vf+gn+sc01+tm+ts"
+    model_module = 'V2SD'
+    proba_final_layer = 1
+    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+
+    # conservative
+    conservative_aug = []
+    # aggressive, OneOf
+    aggressive_aug_proba = 0.80
+    aggressive_aug = ['vflip', 'add_gaussian_noise', 'shuffle01', 'timemask', 'time_shift', ]  # 'reduce_SNR'
+    vflip = True
+    vflip_weight = 1.0
+    add_gaussian_noise = True
+    add_gaussian_noise_weight = 1.0
+    timemask = True
+    timemask_weight = 0.8
+    shuffle01 = True
+    shuffle01_weight = 0.8
+    time_shift = True
+    time_shift_left = 96
+    time_shift_right = 96
+    time_shift_weight = 0.4
+
+
+class Config_R124(R_base):
+    # frequently changed
+    model_version = "124th_V2SDCBAM_PL_6ep_2em3lr_32ch_vf+gn+sc01+tm+ts"
+    model_module = 'V2SDCBAM'
+    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+
+    # conservative
+    conservative_aug = []
+    # aggressive, OneOf
+    aggressive_aug_proba = 0.80
+    aggressive_aug = ['vflip', 'add_gaussian_noise', 'shuffle01', 'timemask', 'time_shift', ]  # 'reduce_SNR'
+    vflip = True
+    vflip_weight = 1.0
+    add_gaussian_noise = True
+    add_gaussian_noise_weight = 1.0
+    timemask = True
+    timemask_weight = 0.8
+    shuffle01 = True
+    shuffle01_weight = 0.8
+    time_shift = True
+    time_shift_left = 96
+    time_shift_right = 96
+    time_shift_weight = 0.4
+
+
+class Config_R133(R_base):
+    # frequently changed
+    model_version = "133rd_V2SD_PL_4ep_2em3lr_32ch_vf_sc01_drop05"
+    model_module = 'V2SD'
+    PL_folder = "../dataset/120th_V2_PL_6ep_1em3lr_32ch_vf_s01/"
+
+    # conservative aug
+    conservative_aug = []
+    # aggressive, OneOf
+    aggressive_aug_proba = 2.0 / 3.0
+    aggressive_aug = ['vflip', 'shuffle01']
+    vflip = True
+    vflip_weight = 1.0
+    shuffle01 = True
+    shuffle01_weight = 0.8
+
+    epochs = 4
+
+    # CNN structure
     proba_final_layer = 0.50
-    CBAM_SG_kernel_size = 15
 
 
 # ======================================================================================
 # M-1D, M-1DS32, M-1DC16, M-SD16, M-SD32
 config_dict = {
     'V2': V2_Config, 'V2_pretrain': V2_Config_pretrain,
-    'V2SD': V2SD_Config, 'V2SD_pretrain': V2SD_Config_pretrain,
     'resnet34': resnet34_Config, 'resnet34_pretrain': resnet34_Config_pretrain,
-    'M3D': M3D_Config,
+    'V-3D': M3D_Config,
+    'V-V2SD': V2SD_Config, 'V-V2SD_pretrain': V2SD_Config_pretrain,
     'M-1D': M_1D_Config, 'M-1D_pretrain': M_1D_Config_pretrain, 'M-1D_adjust': M_1D_Config_adjust,
     'M-1DC16': M_1DC16_Config, 'M-1DC16_pretrain': M_1DC16_Config_pretrain, 'M-1DC16_adjust': M_1DC16_Config_adjust,
     'M-1DS32': M_1DS32_Config, 'M-1DS32_pretrain': M_1DS32_Config_pretrain, 'M-1DS32_adjust': M_1DS32_Config_adjust,
     'M-SD16': M_SD16_Config, 'M-SD16_pretrain': M_SD16_Config_pretrain, 'M-SD16_adjust': M_SD16_Config_adjust,
     'M-SD32': M_SD32_Config, 'M-SD32_pretrain': M_SD32_Config_pretrain, 'M-SD32_adjust': M_SD32_Config_adjust,
-    "R-test": R_test_Config
+    "R-35": Config_R35, "R-112": Config_R112, "R-120": Config_R120, "R-121": Config_R121,
+    "R-122": Config_R122, "R-124": Config_R124, "R-133": Config_R133
 }
 
 
 def read_config(name):
     print("Read Configuration")
-    if name in config_dict:
-        Config = config_dict[name]
-    else:
+    if name not in config_dict:
         print(f"Configuration {name} is not found")
         return None
 
+    Config = config_dict[name]
     Config.model_output_folder = Config.output_dir + Config.model_version + "/"
     if Config.checkpoint_folder:
         Config.checkpoint_folder = Config.output_dir + Config.prev_model_folder + "/" \

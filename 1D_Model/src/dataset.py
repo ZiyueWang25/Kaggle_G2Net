@@ -119,8 +119,8 @@ def read_data(Config):
     if Config.use_subset:
         train_df = train_df.sample(frac=Config.subset_frac, random_state=Config.seed).reset_index(drop=True)
 
-    train_df['file_path'] = train_df['id'].apply(lambda x: id_2_path_wave(x, Config.kaggleDataFolder, True))
-    test_df['file_path'] = test_df['id'].apply(lambda x: id_2_path_wave(x, Config.kaggleDataFolder, False))
+    train_df['file_path'] = train_df['id'].apply(lambda x: id_2_path_wave(x, Config, True))
+    test_df['file_path'] = test_df['id'].apply(lambda x: id_2_path_wave(x, Config, False))
 
     print("StratifiedKFold")
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=Config.seed)

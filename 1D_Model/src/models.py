@@ -15,6 +15,15 @@ def M1D(config):
                                sdrop=config.sdrop,
                                use_raw_wave=config.use_raw_wave,
                                avrSpecDir=config.inputDataFolder)
+    elif config.model_module == "Model1DCNNGEM":
+        model = Model1DCNNGEM(initial_channnels=config.channels)
+    elif config.model_module == 'V2SDCBAM':
+        model = V2SDCBAM(n=config.channels,
+                         proba_final_layer=config.proba_final_layer,
+                         reduction=config.reduction,
+                         CBAM_SG_kernel_size=config.CBAM_SG_kernel_size
+                         )
+
     return model
 
 

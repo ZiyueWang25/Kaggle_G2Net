@@ -9,3 +9,12 @@ python infer.py --model_config M-1D
 python infer.py --model_config M-1DC16
 python infer.py --model_config M-SD16
 python infer.py --model_config M-SD32
+
+# from Richard
+python infer.py --model_config R-35
+python infer.py --model_config R-112
+python infer.py --model_config R-120
+python infer.py --model_config R-121
+python infer.py --model_config R-122
+python infer.py --model_config R-124
+python infer.py --model_config R-133

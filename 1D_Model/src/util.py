@@ -117,11 +117,17 @@ class Dict2Class():
             setattr(self, key, my_dict[key])
 
 
-def id_2_path_wave(idx, input_dir=".", train=True) -> str:
-    if train:
-        return "{}/train/{}/{}/{}/{}.npy".format(input_dir, idx[0], idx[1], idx[2], idx)
+def id_2_path_wave(idx, Config, train=True) -> str:
+    if Config.use_raw_wave:
+        if train:
+            return "{}/train/{}/{}/{}/{}.npy".format(Config.kaggleDataFolder, idx[0], idx[1], idx[2], idx)
+        else:
+            return "{}/test/{}/{}/{}/{}.npy".format(Config.kaggleDataFolder, idx[0], idx[1], idx[2], idx)
     else:
-        return "{}/test/{}/{}/{}/{}.npy".format(input_dir, idx[0], idx[1], idx[2], idx)
+        if train:
+            return "{}/{}.npy".format(Config.whiten_train_folder, idx)
+        else:
+            return "{}/{}.npy".format(Config.whiten_test_folder, idx)
 
 
 def get_device():
