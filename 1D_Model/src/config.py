@@ -7,10 +7,10 @@ class BaseConfig:
     # logistic
     seed = 48
     target_size = 1
-    kaggleDataFolder = '/home/g2net-gravitational-wave-detection/'
-    output_dir = "/home/output_model/"
-    inputDataFolder = "/home/data/"
-    PL_folder = "/home/data/PL_fold/"
+    kaggleDataFolder = '/media/vincentwang/Backup/kaggle_data/g2net-gravitational-wave-detection/'
+    output_dir = "../dataset/Models/"
+    inputDataFolder = "../dataset/"
+    PL_folder = "../dataset/PL_fold/"
     use_raw_wave = True
     use_checkpoint = False
     prev_model_folder = None
