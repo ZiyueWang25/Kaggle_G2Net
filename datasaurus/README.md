@@ -16,7 +16,20 @@ generate out-of-fold (OOF) predictions for stacking models.
 ```
 sh train.sh <config_name>
 ```
-Note that the configurations are set for training on a machine with 2x RTX 3090 GPUs. You may need to edit `hyperparams.yml` to reflect your hardware setup.
+The output directory structure is as follows:
+```
+├── YYYYMMDD-HHMMSS  # Model timestamp
+│   ├── model_name  # e.g. resnet200d
+│   │   ├── fold_0
+│   │   │   ├── model_checkpoint_for_best_loss.ckpt
+│   │   │   ├── model_checkpoint_for_best_auc.ckpt
+│   │   │   ├── hparams.yaml
+│   │   │   ├── tensorboard_events_file
+│   │   ├── fold_1
+│   │   │   ├── etc.
+
+```
+Note that the configurations are set for training on a machine with 2x RTX 3090 GPUs. You may need to edit `hyperparams.yml` to reflect your hardware setup for the number of GPUs and batch size depending on available memory.
 
 # Models used in competition
 The following models were trained either using the CQT transform from `nnAudio` or CWT.
