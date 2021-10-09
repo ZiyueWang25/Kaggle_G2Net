@@ -12,7 +12,7 @@
 **1D Models** [best single model: **0.8819/0.8827/0.8820** at CV, public, and private LB]
 
 - Customized architecture targeted at GW detection
-- TTA: vflip, shuffle LIGO channels, Gaussian noise, time shift, time mask, MC dropout
+- augmentation and TTA: vflip, shuffle LIGO channels, Gaussian noise, time shift, time mask, MC dropout
 
 **Training:**
 
@@ -110,7 +110,7 @@ First, to confirm that train and test data are similar and do not have any hidde
 
 We tried many different methods to ensemble the models and saw the following relative performance trend: [CME-ES](https://github.com/CMA-ES/pycma) with Logit > CME-ES with rank> Scipy Optimization > Neural Network > other methods. We also tried to use `sklearn.preprocessing.PolynomialFeatures` with probability prediction to do the CME-ES optimization. It brings the highest CV and LB but with a little chance of overfitting. We are glad that it turns out to be our best 0.8829 submission.
 
-Our second submission is based on a simulation of the private LB by excluding 16% of our OOF data out of CV optimization. So the produced model weights are more robust to the data noise and potentially can lead to a better performance at the private LB. We do this because we found the CV and LB correlation is very high and we also used adversarial validation to check that indeed they are similar. So We bootstrapped 16% OOF data which has a similar CV to public LB score and **the optimized CV for the remaining data matched the same as the private LB (0.8828 for one of our submissions)**.
+Our second submission is based on a simulation of the private LB by excluding 16% of our OOF data out of CV optimization. So the produced model weights are more robust to the data noise and potentially can lead to a better performance at the private LB. We do this because we found the CV and LB correlation is very high and we also used adversarial validation to check that indeed test and train dataset are similar. So We bootstrapped 16% OOF data which has a similar CV to public LB score and **the optimized CV for the remaining data matched the same as the private LB (0.8828 for one of our submissions)**.
 
 ### Acknowledgment
 
