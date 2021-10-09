@@ -16,6 +16,7 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
   - `stacking.ipynb`: for stacking, use hacking-lb method
   - `SyntheticSignal.ipynb`: for GW simulation
   - `get_avg_w0.ipynb`: for avg_w0 generation
+  - `generate_whiten_wave.ipynb`: for whiten wave generation: `../dataset/whiten-train-w0/` and `../dataset/whiten-test-w0/`
 - src/:
   - `config.py`: Model configuration
   - `dataset.py`: dataset preparation
