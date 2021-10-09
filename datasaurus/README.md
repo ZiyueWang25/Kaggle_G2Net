@@ -27,6 +27,8 @@ The output directory structure is as follows:
 │   │   │   ├── tensorboard_events_file
 │   │   ├── fold_1
 │   │   │   ├── etc.
+│   ├── oofs_YYYYMMDD-HHMMSS_CV-XXXX.csv  # OOF predictions from infer.py
+│   ├── sub_YYYYMMDD-HHMMSS_CV-XXXX.csv  # submission file from infer.py
 
 ```
 Note that the configurations are set for training on a machine with 2x RTX 3090 GPUs. You may need to edit `hyperparams.yml` to reflect your hardware setup for the number of GPUs and batch size depending on available memory.
