@@ -35,7 +35,7 @@ def read_data():
 def generate_PL(fold,train_df):
     pseudo_label_df = pd.read_csv(Config.pseudo_label_folder + f"test_Fold_{fold}.csv") 
     pseudo_label_df['file_path'] = pseudo_label_df['id'].apply(lambda x :id_2_path(x,False))
-    pseudo_label_df["target"] = (pseudo_label_df['target']).apply(sigmoid)
+    pseudo_label_df["target"] = pseudo_label_df[f'preds_Fold_{fold}']
 
     test_df_2 = pseudo_label_df.copy()
     test_df_2['fold'] = Config.n_fold
