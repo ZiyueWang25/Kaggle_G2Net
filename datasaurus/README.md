@@ -16,7 +16,7 @@ generate out-of-fold (OOF) predictions for stacking models.
 ```
 sh train.sh <config_name>
 ```
-Note that the configurations are set for training on a machine with 2 GPUs. You may need to edit `hyperparams.yml` to reflect your hardware setup.
+Note that the configurations are set for training on a machine with 2x RTX 3090 GPUs. You may need to edit `hyperparams.yml` to reflect your hardware setup.
 
 # Models used in competition
 The following models were trained either using the CQT transform from `nnAudio` or CWT.
