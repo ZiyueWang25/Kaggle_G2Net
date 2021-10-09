@@ -11,12 +11,23 @@ To train a single model using a config listed in `hyperparams.yml` run:
 ```
 python train.py --config <config_name>
 ```
-To run a 5-fold cross validation, using 5 different seeds, use the shell script `train.sh`. This script will also run `infer.py` and 
+To run a 5-fold cross validation use the shell script `train.sh`. This script will also run `infer.py` and 
 generate out-of-fold (OOF) predictions for stacking models.
 ```
 sh train.sh <config_name>
 ```
 Note that the configurations are set for training on a machine with 2 GPUs. You may need to edit `hyperparams.yml` to reflect your hardware setup.
+
+# Models used in competition
+The following models were trained either using the CQT transform from `nnAudio` or CWT.
+* ResNet-200d (CQT)
+* EfficientNet B5 (CQT)
+* EfficientNet V2 M (CQT)
+* A basic 1D CNN
+* EfficientNet B5 (CWT)
+* EfficientNet B5 (CQT) with pseudo labelling
+* EfficientNet B3 (CQT) with pseudo labelling
+* EfficientNet B3 (CWT) with pseudo labelling
 
 # Reproducing Kaggle models
 To reproduce the model weights used in the final submission run:
