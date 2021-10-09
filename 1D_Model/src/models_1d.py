@@ -35,7 +35,6 @@ class Extractor(nn.Sequential):
             nn.Conv1d(in_c, out_c, kernel_size=kernel_size, padding=kernel_size // 2),
             nn.BatchNorm1d(out_c), act,
             nn.Conv1d(out_c, out_c, kernel_size=kernel_size, padding=kernel_size // 2),
-            # nn.MaxPool1d(kernel_size=maxpool),
             GeM(kernel_size=maxpool),
         )
 

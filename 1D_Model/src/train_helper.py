@@ -13,13 +13,17 @@ from .dataset import *
 from .models import getModel
 from .optim import RangerLars
 from .loss import rank_loss
+from .augmentation import get_tranform_list
 
 
 def training_loop(train_df, Config, synthetic=None):
+    if Config.do_advance_trans:
+        Config = get_tranform_list(Config)
     if Config.use_wandb:
         wandb.login(key=get_key(Config.wandb_key_path))
-        run = wandb.init(project=Config.wandb_project, name=Config.model_version + Config.wandb_post, config=class2dict(Config),
-                         group=Config.model_module, job_type=Config.model_version)
+        wandb.init(project=Config.wandb_project, name=Config.model_version + Config.wandb_post,
+                   config=class2dict(Config), group=Config.model_module, job_type=Config.model_version)
+
     folds_val_score = []
     for fold in range(5):
         if Config.model_module == "M3D":
@@ -38,10 +42,8 @@ def training_loop(train_df, Config, synthetic=None):
 
 
 def run_fold(fold, original_train_df, Config,
-            swa_start_step=None, swa_start_epoch=None,
-            train_transform=None, test_transform=None, synthetic=None,
-            **kwargs,
-            ):
+             swa_start_step=None, swa_start_epoch=None, synthetic=None,
+             **kwargs):
     train_df = generate_PL(fold, original_train_df.copy(), Config)
     train_index, valid_index = train_df.query(f"fold!={fold}").index, train_df.query(
         f"fold=={fold}").index  # fold means fold_valid
@@ -56,9 +58,8 @@ def run_fold(fold, original_train_df, Config,
 
     print('training data samples, val data samples: ', len(train_X), len(valid_X))
     train_data_retriever = DataRetriever(train_X["file_path"].values, train_X["target"].values,
-                                         transforms=train_transform, synthetic=synthetic)
-    valid_data_retriever = DataRetrieverTest(valid_X["file_path"].values, valid_X["target"].values,
-                                             transforms=test_transform)
+                                         synthetic=synthetic, Config=Config)
+    valid_data_retriever = DataRetrieverTest(valid_X["file_path"].values, valid_X["target"].values)
 
     train_loader = DataLoader(train_data_retriever,
                               batch_size=Config.batch_size,
@@ -77,7 +78,7 @@ def run_fold(fold, original_train_df, Config,
         optimizer = RangerLars(model.parameters(), lr=Config.lr, eps=1e-04, weight_decay=Config.weight_decay)
     else:
         optimizer = AdamW(model.parameters(), lr=Config.lr, eps=1e-08, weight_decay=Config.weight_decay,
-                          amsgrad=False)  # eps to avoid NaN/Inf in training loss
+                          amsgrad=False)
     scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs, Config.warmup)
     swa_model, swa_scheduler = None, None
     best_valid_score = -np.inf

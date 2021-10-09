@@ -4,12 +4,7 @@ from .models_3d import *
 
 
 def M1D(config):
-    if config.model_module == "V2":
-        model = ModelIafossV2(n=config.channels,
-                              sdrop=config.sdrop,
-                              use_raw_wave=config.use_raw_wave,
-                              avrSpecDir=config.inputDataFolder)
-    elif config.model_module == 'V2SD':
+    if config.model_module == 'V2SD':
         model = V2StochasticDepth(n=config.channels,
                                   proba_final_layer=config.proba_final_layer,
                                   sdrop=config.sdrop,

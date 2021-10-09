@@ -9,13 +9,17 @@ from .util import id_2_path_wave
 
 
 class DataRetriever(Dataset):
-    def __init__(self, paths, targets, transforms=None, synthetic=None):
+    def __init__(self, paths, targets, synthetic=None, Config=None):
         self.paths = paths
         self.targets = targets
-        self.transforms = transforms
         self.synthetic = synthetic
         self.synthetic_keys = list(self.synthetic.keys()) if synthetic is not None else None
         self.neg_idxes = [i for i, t in enumerate(targets) if t == 0]
+
+        self.Config = Config
+        self.cons_funcs = Config.cons_funcs
+        self.aggr_funcs = Config.aggr_funcs
+        self.aggr_func_names = Config.aggr_func_names
 
     def __len__(self):
         return len(self.paths)
@@ -27,12 +31,22 @@ class DataRetriever(Dataset):
             path = self.paths[random.choice(self.neg_idxes)]
         waves = np.load(path)
 
-        if np.random.random() < 0.5:
-            waves[[0, 1]] = waves[[1, 0]]
-        if np.random.random() < 0.5:
-            waves = -waves
-        if self.transforms is not None:
-            waves = self.transforms(waves, sample_rate=2048)
+        if self.cons_funcs or self.aggr_funcs:
+            if self.cons_funcs:
+                for transform in self.cons_funcs:
+                    waves = transform(waves, sample_rate=2048)
+            if self.aggr_funcs:
+                if np.random.random() < self.Config.aggressive_aug_proba:
+                    probas = np.array(
+                        [getattr(self.Config(), f'{agg}_weight') for agg in self.aggr_func_names])
+                    transform = np.random.choice(self.aggr_funcs, p=probas)
+                    waves = transform(waves, sample_rate=2048)
+        else:
+            if np.random.random() < 0.5:
+                waves[[0, 1]] = waves[[1, 0]]
+            if np.random.random() < 0.5:
+                waves = -waves
+
         x = torch.FloatTensor(waves * 1e20)
         if target > 0 and (self.synthetic is not None):
             w = torch.FloatTensor((self.synthetic[random.choice(self.synthetic_keys)]))
@@ -41,7 +55,7 @@ class DataRetriever(Dataset):
             w = np.pad(w[:, shift_place:], [(0, 0), (0, shift_place)], mode='constant')
             x += w
         target = torch.tensor(target, dtype=torch.float)
-        return (x, target)
+        return x, target
 
 
 class DataRetrieverTest(Dataset):
@@ -61,7 +75,7 @@ class DataRetrieverTest(Dataset):
             waves = self.transforms(waves, sample_rate=2048)
         x = torch.FloatTensor(waves * 1e20)
         target = torch.tensor(target, dtype=torch.float)
-        return (x, target)
+        return x, target
 
 
 def generate_PL(fold, train_df, Config):
@@ -89,8 +103,8 @@ def read_synthetic(Config):
     if not Config.synthetic: return None
     print("Read Synthetic Data")
     with open(Config.inputDataFolder + '/GW_sim_300k.pkl', 'rb') as handle:
-        SIGNAL_DICT = pickle.load(handle)
-    return SIGNAL_DICT
+        signal_dict = pickle.load(handle)
+    return signal_dict
 
 
 def read_data(Config):

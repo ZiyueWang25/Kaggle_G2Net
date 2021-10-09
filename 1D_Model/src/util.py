@@ -2,9 +2,9 @@ import random
 import os
 import numpy as np
 import torch
-import audiomentations as A
+import math
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts, CosineAnnealingLR, ReduceLROnPlateau, CyclicLR
 from transformers import get_cosine_schedule_with_warmup
-from torch.utils.data import Dataset
 from torch.optim.swa_utils import AveragedModel
 from numba import jit
 
@@ -22,49 +22,6 @@ def fast_auc(y_true, y_prob):
         auc += y_i * nfalse
     auc /= (nfalse * (n - nfalse))
     return auc
-
-
-class TTA(Dataset):
-    def __init__(self, paths, targets, use_vflip=False, shuffle_channels=False, time_shift=False,
-                 add_gaussian_noise=False, time_stretch=False, shuffle01=False):
-        self.paths = paths
-        self.targets = targets
-        self.use_vflip = use_vflip
-        self.shuffle_channels = shuffle_channels
-        self.time_shift = time_shift
-        self.gaussian_noise = add_gaussian_noise
-        self.time_stretch = time_stretch
-        self.shuffle01 = shuffle01
-        if time_shift:
-            self.time_shift = A.Shift(min_fraction=-512 * 1.0 / 4096, max_fraction=-1.0 / 4096, p=1, rollover=False)
-        if add_gaussian_noise:
-            self.gaussian_noise = A.AddGaussianNoise(min_amplitude=0.001, max_amplitude=0.015, p=1)
-        if time_stretch:
-            self.time_stretch = A.TimeStretch(min_rate=0.9, max_rate=1.111, leave_length_unchanged=True, p=1)
-
-    def __len__(self):
-        return len(self.paths)
-
-    def __getitem__(self, index):
-        path = self.paths[index]
-        waves = np.load(path)
-
-        if self.use_vflip:
-            waves = -waves
-        if self.shuffle_channels:
-            np.random.shuffle(waves)
-        if self.time_shift:
-            waves = self.time_shift(waves, sample_rate=2048)
-        if self.gaussian_noise:
-            waves = self.gaussian_noise(waves, sample_rate=2048)
-        if self.time_stretch:
-            waves = self.time_stretch(waves, sample_rate=2048)
-        if self.shuffle01:
-            waves[[0, 1]] = waves[[1, 0]]
-
-        waves = torch.FloatTensor(waves * 1e20)
-        target = torch.tensor(self.targets[index], dtype=torch.float)  # device=device,
-        return waves, target
 
 
 def get_swa(model, optimizer, epochs, swa_start_step_epoch, swa_lr, train_size, batch_size):
@@ -99,13 +56,39 @@ def seed_torch(seed=42):
     torch.backends.cudnn.deterministic = True
 
 
-def get_scheduler(optimizer, train_size, batch_size, epochs, warmup=0.1):
-    epoch_step = train_size / batch_size
-    num_warmup_steps = int(warmup * epoch_step * epochs)
-    num_training_steps = int(epoch_step * epochs)
-    scheduler = get_cosine_schedule_with_warmup(optimizer,
-                                                num_warmup_steps=num_warmup_steps,
-                                                num_training_steps=num_training_steps)
+def get_scheduler(optimizer, train_size, Config):
+    if Config.scheduler == 'ReduceLROnPlateau':
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=Config.factor,
+                                      patience=Config.patience, verbose=True, eps=Config.eps)
+    elif Config.scheduler == 'CosineAnnealingLR':
+        scheduler = CosineAnnealingLR(optimizer,
+                                      T_max=Config.T_max,
+                                      eta_min=Config.min_lr, last_epoch=-1)
+    elif Config.scheduler == 'CosineAnnealingWarmRestarts':
+        scheduler = CosineAnnealingWarmRestarts(optimizer,
+                                                T_0=Config.T_0,
+                                                T_mult=1,
+                                                eta_min=Config.min_lr,
+                                                last_epoch=-1)
+    elif Config.scheduler == 'CyclicLR':
+        iter_per_ep = train_size / Config.batch_size
+        step_size_up = int(iter_per_ep * Config.step_up_epochs)
+        step_size_down = int(iter_per_ep * Config.step_down_epochs)
+        scheduler = CyclicLR(optimizer,
+                             base_lr=Config.base_lr,
+                             max_lr=Config.max_lr,
+                             step_size_up=step_size_up,
+                             step_size_down=step_size_down,
+                             mode=Config.mode,
+                             gamma=Config.cycle_decay ** (1 / (step_size_up + step_size_down)),
+                             cycle_momentum=False)
+    elif Config.scheduler == 'cosineWithWarmUp':
+        epoch_step = train_size / Config.batch_size
+        num_warmup_steps = int(Config.warmup * epoch_step * Config.epochs)
+        num_training_steps = int(epoch_step * Config.epochs)
+        scheduler = get_cosine_schedule_with_warmup(optimizer,
+                                                    num_warmup_steps=num_warmup_steps,
+                                                    num_training_steps=num_training_steps)
     return scheduler
 
 
@@ -148,8 +131,22 @@ def get_device():
     return device
 
 
+def get_n_params(model):
+    pp=0
+    for p in list(model.parameters()):
+        nn=1
+        for s in list(p.size()):
+            nn = nn*s
+        pp += nn
+    return pp
+
+
 def get_key(path):
     f = open(path, "r")
     key = f.read().strip()
     f.close()
     return key
+
+
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))

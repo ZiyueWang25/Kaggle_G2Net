@@ -300,6 +300,7 @@ class M_SD16_Config(BaseConfig):
 
     use_autocast = True
 
+
 class M_SD16_Config_pretrain(M_SD16_Config):
     checkpoint_folder = None
     PL_folder = None
@@ -341,6 +342,7 @@ class M_SD32_Config(BaseConfig):
 
     use_autocast = True
 
+
 class M_SD32_Config_pretrain(M_SD32_Config):
     checkpoint_folder = None
     PL_folder = None
@@ -364,6 +366,75 @@ class M_SD32_Config_adjust(M_SD32_Config):
     sdrop = 0
 
 
+class R_aug(BaseConfig):
+    conservative_aug = []
+    aggressive_aug_proba = []
+    aggressive_aug = ['vflip']
+
+    vflip = True
+    vflip_proba = 0.5
+    vflip_weight = 1.0
+    add_gaussian_noise = False
+    add_gaussian_noise_proba = 0.5
+    add_gaussian_noise_weight = 1.0
+    timemask = False
+    timemask_proba = 0.35
+    timemask_weight = 0.8
+    shuffle01 = False
+    shuffle01_proba = 0.35
+    shuffle01_weight = 0.8
+    time_shift = False
+    time_shift_left = 96
+    time_shift_right = 96
+    time_shift_proba = 0.35
+    time_shift_weight = 0.4
+
+    shift_channel = False
+    shift_channel_left = 16
+    shift_channel_right = 16
+    shift_channel_proba = 0.5
+    shift_channel_weight = 1.0
+    shift_two_channels = False  # tba
+    shift_two_channels_proba = 0.5
+    shift_two_channels_weight = 1.0
+    reduce_SNR = False
+    reduce_SNR_ratio = 0.9998
+    reduce_SNR_proba = 0.5
+    reduce_SNR_weight = 1.0
+
+    time_stretch = False
+    divide_std = False
+    shuffle_channels = False
+    pitch_shift = False
+    cropping = False
+
+
+
+class R_base(R_aug):
+    model_version = "test2"
+    model_module = 'V2SD'
+    epochs = 12
+    lr = 5e-3
+    weight_decay = 0
+
+    num_workers = 0
+    continuous_exp = False
+    # augmentation
+    do_advance_trans = True
+    conservative_aug = ['vflip', 'shuffle01']
+    aggressive_aug = []
+    vflip = True
+    vflip_proba = 0.5
+    shuffle01 = True
+    shuffle01_proba = 0.5
+
+    #CNN structure
+    channels = 32
+    reduction = 1.0
+    proba_final_layer = 0.50
+    CBAM_SG_kernel_size = 15
+
+
 # ======================================================================================
 # M-1D, M-1DS32, M-1DC16, M-SD16, M-SD32
 config_dict = {
@@ -376,6 +447,7 @@ config_dict = {
     'M-1DS32': M_1DS32_Config, 'M-1DS32_pretrain': M_1DS32_Config_pretrain, 'M-1DS32_adjust': M_1DS32_Config_adjust,
     'M-SD16': M_SD16_Config, 'M-SD16_pretrain': M_SD16_Config_pretrain, 'M-SD16_adjust': M_SD16_Config_adjust,
     'M-SD32': M_SD32_Config, 'M-SD32_pretrain': M_SD32_Config_pretrain, 'M-SD32_adjust': M_SD32_Config_adjust,
+    "R-test": R_test_Config
 }
 
 
