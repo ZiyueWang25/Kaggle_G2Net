@@ -49,7 +49,7 @@ sh reproduce_train.sh
 ```
 Note that a CSV file with the pseudolabels will need to be in the `INPUT_PATH` for the pesudolabelled models (e.g. `submission_power2_weight.csv`).
 
-To reproduce the submission files (and OOF predictions), copy all the model weights to the `OUTPUT_PATH` and run:
+To reproduce the submission files (and OOF predictions), copy all the model weights to the `OUTPUT_PATH` (maintaining the structure described above) and run:
 ```
 sh reproduce_infer.sh 
 ```
