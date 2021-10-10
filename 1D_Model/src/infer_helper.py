@@ -9,45 +9,14 @@ from .models import getModel
 from torch import nn
 
 
-def get_before_head(x, model):
-    if isinstance(model, nn.DataParallel):
-        model = model.module
-    with torch.no_grad():
-        with torch.cuda.amp.autocast(enabled=False):
-            shape = x.shape
-            c = x.view(shape[0] * shape[1], -1)
-            c = torch.cat([-c.flip(-1)[:, 4096 - 2049:-1] + 2 * c[:, 0].unsqueeze(-1), c,
-                           -c.flip(-1)[:, 1:2049] + 2 * c[:, -1].unsqueeze(-1)], 1)
-            avr_spec = model.avr_spec.repeat(shape[0], 1).view(-1, model.avr_spec.shape[-1])
-            x = torch.fft.ifft(torch.fft.fft(c * model.window) / avr_spec).real
-            x = x.view(shape[0], shape[1], x.shape[-1])
-            x = x[:, :, 2048:-2048]
-    x0 = [model.ex[0](x[:, 0].unsqueeze(1)), model.ex[0](x[:, 1].unsqueeze(1)),
-          model.ex[1](x[:, 2].unsqueeze(1))]
-    x1 = [model.conv1[0](x0[0]), model.conv1[0](x0[1]), model.conv1[1](x0[2]),
-          model.conv1[2](torch.cat([x0[0], x0[1], x0[2]], 1))]
-    x2 = torch.cat(x1, 1)
-    return model.conv2(x2)
-
-
 def get_pred(loader, model, device, use_MC=False, MC_folds=64):
-    if isinstance(model, nn.DataParallel):
-        model = model.module
-    if use_MC:
-        model.head[4].train()
-        model.head[8].train()
     preds = []
     for step, batch in enumerate(loader, 1):
         if step % 500 == 0:
             print("step {}/{}".format(step, len(loader)))
         with torch.no_grad():
             X = batch[0].to(device)
-            if use_MC:
-                x2 = get_before_head(X, model)
-                preds_MC = [model.head(x2) for _ in range(MC_folds)]
-                outputs = torch.stack(preds_MC, 0).mean(0)
-            else:
-                outputs = model(X)
+            outputs = model(X,use_MC=use_MC,MC_folds=MC_folds)
             outputs = outputs.squeeze().sigmoid().cpu().detach().numpy()
             preds.append(outputs)
     predictions = np.concatenate(preds)

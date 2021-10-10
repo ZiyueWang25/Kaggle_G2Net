@@ -123,7 +123,7 @@ def to_Mish(model):
         else:
             to_Mish(child)
 
-
+#ModelIafossV2 model with StochasticDepth; sdrop=0 corresponds to ModelIafossV2
 class V2StochasticDepth(nn.Module):  # stocnot on ex
     def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=False), ps=0.5, proba_final_layer=0.5, use_raw_wave=True,
                  sdrop=0, avr_w0_path="avr_w0.pth", **kwarg):
@@ -173,7 +173,7 @@ class V2StochasticDepth(nn.Module):  # stocnot on ex
                                   nn.Linear(nh, 1),
                                   )
 
-    def forward(self, x):
+    def forward(self, x, use_MC=False, MC_folds=64):
         if self.use_raw_wave:
             with torch.no_grad():
                 with torch.cuda.amp.autocast(enabled=False):
@@ -190,7 +190,14 @@ class V2StochasticDepth(nn.Module):  # stocnot on ex
         x1 = [self.conv1[0](x0[0]), self.conv1[0](x0[1]), self.conv1[1](x0[2]),
               self.conv1[2](torch.cat([x0[0], x0[1], x0[2]], 1))]
         x2 = torch.cat(x1, 1)
-        return self.head(self.conv2(x2))
+        x2 = self.conv2(x2)
+        if use_MC:
+            self.head[4].train() #Dropout
+            self.head[8].train()
+            preds = [self.head(x2) for i in range(MC_folds)]
+            preds = torch.stack(preds,0).mean(0)
+            return preds
+        else: return self.head(x2)
 
 
 # modified version of https://github.com/zhanghang1989/ResNeSt
@@ -362,9 +369,8 @@ class ModelIafossV2S(nn.Module):
                                   nn.Linear(nh, 1),
                                   )
 
-    def forward(self, x):
+    def forward(self, x, use_MC=False, MC_folds=64):
         if self.use_raw_wave:
-            # !!
             with torch.no_grad():
                 with torch.cuda.amp.autocast(enabled=False):
                     shape = x.shape
@@ -380,7 +386,14 @@ class ModelIafossV2S(nn.Module):
         x1 = [self.conv1[0](x0[0]), self.conv1[0](x0[1]), self.conv1[1](x0[2]),
               self.conv1[2](torch.cat([x0[0], x0[1], x0[2]], 1))]
         x2 = torch.cat(x1, 1)
-        return self.head(self.conv2(x2))
+        x2 = self.conv2(x2)
+        if use_MC:
+            self.head[4].train() #Dropout
+            self.head[8].train()
+            preds = [self.head(x2) for i in range(MC_folds)]
+            preds = torch.stack(preds,0).mean(0)
+            return preds
+        else: return self.head(x2)
 
 
 class SELayer(nn.Module):
@@ -535,13 +548,20 @@ class V2SDCBAM(nn.Module):  # stocnot on ex
                                   nn.Linear(nh, 1),
                                   )
 
-    def forward(self, x):
+    def forward(self, x, use_MC=False, MC_folds=64):
         x0 = [self.ex[0](x[:, 0].unsqueeze(1)), self.ex[0](x[:, 1].unsqueeze(1)),
               self.ex[1](x[:, 2].unsqueeze(1))]
         x1 = [self.conv1[0](x0[0]), self.conv1[0](x0[1]), self.conv1[1](x0[2]),
               self.conv1[2](torch.cat([x0[0], x0[1], x0[2]], 1))]
         x2 = torch.cat(x1, 1)
-        return self.head(self.conv2(x2))
+        x2 = self.conv2(x2)
+        if use_MC:
+            self.head[4].train() #Dropout
+            self.head[8].train()
+            preds = [self.head(x2) for i in range(MC_folds)]
+            preds = torch.stack(preds,0).mean(0)
+            return preds
+        else: return self.head(x2)
 
 
 class Model1DCNNGEM(nn.Module):
