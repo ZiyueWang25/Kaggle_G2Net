@@ -6,12 +6,13 @@ import numpy as np
 
 
 class TTA(Dataset):
-    def __init__(self, paths, targets, vflip=False, shuffle_channels=False,
+    def __init__(self, paths, targets, use_raw_wave=True, vflip=False, shuffle_channels=False,
                  time_shift=False, tsl=96, tsr=96,
                  add_gaussian_noise=False, time_stretch=False, shuffle01=False,timemask=False,
                  shift_channel=False,reduce_SNR=False):
         self.paths = paths
         self.targets = targets
+        self.use_raw_wave = use_raw_wave
         self.vflip = vflip
         self.shuffle_channels = shuffle_channels
         self.time_shift = time_shift
@@ -54,7 +55,7 @@ class TTA(Dataset):
         if self.timemask:
             waves = self.timemask(waves, sample_rate=2048)
 
-        waves = torch.FloatTensor(waves * 1e20)
+        waves = torch.FloatTensor(waves * 1e20) if self.use_raw_wave else torch.FloatTensor(waves)
         target = torch.tensor(self.targets[index], dtype=torch.float)  # device=device,
         return waves, target
 

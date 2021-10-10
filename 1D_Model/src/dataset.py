@@ -39,6 +39,7 @@ class DataRetriever(Dataset):
                 if np.random.random() < self.Config.aggressive_aug_proba:
                     probas = np.array(
                         [getattr(self.Config(), f'{agg}_weight') for agg in self.aggr_func_names])
+                    probas /= probas.sum()
                     transform = np.random.choice(self.aggr_funcs, p=probas)
                     waves = transform(waves, sample_rate=2048)
         else:

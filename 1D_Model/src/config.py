@@ -456,7 +456,7 @@ class Config_R112(R_base):
     # frequently changed
     model_version = "main_112th_V2SD_PL_6ep_5Fold"
     model_module = 'V2SD'
-    PL_folder =  "../dataset/main_35th_GeM_vflip_shuffle01_5fold/"
+    PL_folder = DATA_LOC + "main_35th_GeM_vflip_shuffle01_5fold/"
 
     # augmentation
     conservative_aug = ['vflip', 'add_gaussian_noise']
@@ -475,7 +475,7 @@ class Config_R120(R_base):
     model_version = "120th_V2_PL_6ep_1em3lr_32ch_vf_s01"
     model_module = 'V2SD'
     proba_final_layer = 1
-    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+    PL_folder = DATA_LOC + "main_112th_V2SD_PL_6ep_5Fold/"
     # conservative
     conservative_aug = []
     # aggressive, OneOf

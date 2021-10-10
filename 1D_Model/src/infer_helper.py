@@ -44,7 +44,7 @@ def get_pred(loader, model, device, use_MC=False, MC_folds=64):
             X = batch[0].to(device)
             if use_MC:
                 x2 = get_before_head(X, model)
-                preds_MC = [model.head(x2) for i in range(MC_folds)]
+                preds_MC = [model.head(x2) for _ in range(MC_folds)]
                 outputs = torch.stack(preds_MC, 0).mean(0)
             else:
                 outputs = model(X)
@@ -55,7 +55,7 @@ def get_pred(loader, model, device, use_MC=False, MC_folds=64):
 
 
 def get_tta_pred(df, model, Config, **transforms):
-    data_retriever = TTA(df['file_path'].values, df['target'].values, **transforms)
+    data_retriever = TTA(df['file_path'].values, df['target'].values, Config.use_raw_wave, **transforms)
     loader = DataLoader(data_retriever,
                         batch_size=Config.batch_size * 2,
                         shuffle=False,
