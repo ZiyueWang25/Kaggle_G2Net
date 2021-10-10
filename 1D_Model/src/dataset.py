@@ -102,7 +102,7 @@ def generate_PL(fold, train_df, Config):
 def read_synthetic(Config):
     if not Config.synthetic: return None
     print("Read Synthetic Data")
-    with open(Config.inputDataFolder + '/GW_sim_300k.pkl', 'rb') as handle:
+    with open(Config.sim_data_path, 'rb') as handle:
         signal_dict = pickle.load(handle)
     return signal_dict
 

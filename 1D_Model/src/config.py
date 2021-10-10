@@ -2,17 +2,18 @@ import os
 from argparse import ArgumentParser
 import torch
 
+DATA_LOC = "../../data/1D_Model/" # change if necessary
 
 class BaseConfig:
     # logistic
     seed = 48
     target_size = 1
-    kaggleDataFolder = '/media/vincentwang/Backup/kaggle_data/g2net-gravitational-wave-detection/'
-    output_dir = "../dataset/Models/"
-    inputDataFolder = "../dataset/"
-    PL_folder = "../dataset/PL_fold/"
-    whiten_train_folder = "../dataset/whiten-train-w0/"
-    whiten_test_folder = "../dataset/whiten-test-w0/"
+    kaggleDataFolder = '../../data/g2net-gravitational-wave-detection/' # change if necessary
+    output_dir = DATA_LOC + "Models/"
+    PL_folder = DATA_LOC + "PL_fold/"
+    whiten_train_folder = DATA_LOC + "whiten-train-w0/"
+    whiten_test_folder = DATA_LOC + "whiten-test-w0/"
+    sim_data_path = DATA_LOC + 'GW_sim_300k.pkl'
     use_raw_wave = True
     use_checkpoint = False
     prev_model_folder = None
@@ -39,7 +40,7 @@ class BaseConfig:
     use_wandb = False
     wandb_post = ""
     wandb_project = "G2Net_Rep"
-    wandb_key_path = "/home/key/key.txt"
+    wandb_key_path = DATA_LOC + "key.txt"
     # training related
     train_folds = [0, 1, 2, 3, 4]
     optim = 'Adam'
@@ -151,18 +152,17 @@ class M3D_Config(BaseConfig):
 
     model_1D = "V2"
     model_1D_emb = 128
-    model_1D_pretrain_dir = "/home/output_model/V2_c16_sGW_vflip_sc01_PL/"
+    model_1D_pretrain_dir = BaseConfig.output_dir + "/V2_c16_sGW_vflip_sc01_PL/"
 
     model_2D = 'resnet34'
     encoder = "resnet34"
     model_2D_emb = 128
-    model_2D_pretrain_dir = "/home/output_model/resnet34-sGW2ep-PL-sc01-5ep/"
+    model_2D_pretrain_dir = BaseConfig.output_dir + "/resnet34-sGW2ep-PL-sc01-5ep/"
 
     first = 512
     ps = 0.5
 
 
-# M-1D, M-1DS32, M-1DC16, M-SD16, M-SD32
 class M_1D_Config(BaseConfig):
     model_version = "M-1D"
     model_module = "V2SD"
@@ -495,7 +495,7 @@ class Config_R121(R_base):
     # frequently changed
     model_version = "121st_V2SD_PL_6ep_2em3lr_32ch_vf+gn+sc01+tm+ts"
     model_module = 'V2SD'
-    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+    PL_folder = DATA_LOC + "/main_112th_V2SD_PL_6ep_5Fold/"
 
     # conservative
     conservative_aug = []
@@ -521,7 +521,7 @@ class Config_R122(R_base):
     model_version = "122nd_V2_PL_6ep_2em3lr_32ch_vf+gn+sc01+tm+ts"
     model_module = 'V2SD'
     proba_final_layer = 1
-    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+    PL_folder = DATA_LOC + "main_112th_V2SD_PL_6ep_5Fold/"
 
     # conservative
     conservative_aug = []
@@ -546,7 +546,7 @@ class Config_R124(R_base):
     # frequently changed
     model_version = "124th_V2SDCBAM_PL_6ep_2em3lr_32ch_vf+gn+sc01+tm+ts"
     model_module = 'V2SDCBAM'
-    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+    PL_folder = DATA_LOC + "/main_112th_V2SD_PL_6ep_5Fold/"
 
     # conservative
     conservative_aug = []
@@ -571,7 +571,7 @@ class Config_R133(R_base):
     # frequently changed
     model_version = "133rd_V2SD_PL_4ep_2em3lr_32ch_vf_sc01_drop05"
     model_module = 'V2SD'
-    PL_folder = "../dataset/120th_V2_PL_6ep_1em3lr_32ch_vf_s01_5Fold/"
+    PL_folder = DATA_LOC + "/120th_V2_PL_6ep_1em3lr_32ch_vf_s01_5Fold/"
 
     # conservative aug
     conservative_aug = []

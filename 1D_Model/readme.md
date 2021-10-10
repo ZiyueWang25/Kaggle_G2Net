@@ -20,7 +20,9 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
   - `SyntheticSignal.ipynb`: for GW simulation
   - `get_avg_w0.ipynb`: for avg_w0 generation
   - `generate_whiten_wave.ipynb`: for whiten wave generation: `../dataset/whiten-train-w0/` and `../dataset/whiten-test-w0/`
+  - Richard_Models/: folder contains the original notebook for model generation from Richard
 - src/:
+  - `augmentation.py`: augmentation functions 
   - `config.py`: Model configuration
   - `dataset.py`: dataset preparation
   - `infer_helper.py`: helper functions for inference
@@ -32,6 +34,7 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
   - `models_3d.py`: 3D model structure
   - `optim.py`: optimizer class
   - `train_helper.py`: helper functions for training
+  - `TTA.py`: class for test time augmentation
   - `util.py`: utility functions
 - `infer.py`: inference interface
 - `train.py`: training interface
@@ -44,17 +47,25 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
 
 ## DATA SETUP (assumes the [Kaggle API](https://github.com/Kaggle/kaggle-api) is installed)
 
-1. If there is no `dataset` folder in the current folder, please download it from the google drive and put it inside this folder
+1. If there is no `data` folder in the parent folder, please 
+   1. download it from the google drive 
+   2. put it inside parent folder
+   3. rename the folder as `data` folder
 
-## Below are the shell commands used in each step, as run from the top level directory
+## Below are the shell commands used in each step, as run from current directory
 
-1. cd dataset/
-2. kaggle competitions download -c g2net-gravitational-wave-detection
-3. unzip -q g2net-gravitational-wave-detection
-4. cd ../
-5. python reproduce.sh
+1. Download kaggle competition data
+   1. `cd ../data/`
+   2. `kaggle competitions download -c g2net-gravitational-wave-detection`
+   3. `unzip -q g2net-gravitational-wave-detection`
+2. Generate whiten wave from competition data
+   1. run notebook `1D_Model/notebooks/generate_whiten_wave.ipynb)`
+3. Reproduce Result
+   1. `cd ../1D_Model/`
+   2. reproduce models:`./reproduce_train.sh`  
+   3. reproduce predictions: `./reproduce_infer.sh`
 
-## MODEL BUILD: There are two options to produce the solution.
+## MODEL BUILD: There are three options to produce the solution.
 
 1) very fast prediction: run `notebook/stacking.ipynb`
     a) runs in 2 hours
