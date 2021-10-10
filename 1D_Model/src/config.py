@@ -636,5 +636,9 @@ def read_config(name):
 def prepare_args():
     parser = ArgumentParser()
     parser.add_argument('--model_config', type=str, help='configuration name for this run')
+    parser.add_argument('--gen_oof', nargs='?', const=1, type=bool,
+                        help='generate oof prediction during inference or not')
+    parser.add_argument('--gen_test', nargs='?', const=1, type=bool,
+                        help='generate test prediction during inference or not')
     args = parser.parse_args()
     return args
