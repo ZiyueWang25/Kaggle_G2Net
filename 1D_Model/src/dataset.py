@@ -128,5 +128,4 @@ def read_data(Config):
     train_df['fold'] = -1
     for fold, (train_index, valid_index) in enumerate(splits):
         train_df.loc[valid_index, "fold"] = fold
-    train_df.groupby('fold')['target'].apply(lambda s: s.value_counts(normalize=True))
     return train_df, test_df

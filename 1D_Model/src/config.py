@@ -2,13 +2,13 @@ import os
 from argparse import ArgumentParser
 import torch
 
-DATA_LOC = "../../data/1D_Model/" # change if necessary
+DATA_LOC = "../data/1D_Model/" # change if necessary
 
 class BaseConfig:
     # logistic
     seed = 48
     target_size = 1
-    kaggleDataFolder = '../../data/g2net-gravitational-wave-detection/' # change if necessary
+    kaggleDataFolder = '../data/g2net-gravitational-wave-detection/' # change if necessary
     output_dir = DATA_LOC + "Models/"
     PL_folder = DATA_LOC + "PL_fold/"
     whiten_train_folder = DATA_LOC + "whiten-train-w0/"
@@ -424,7 +424,6 @@ class R_base(R_aug):
     use_raw_wave = False
     do_advance_trans = True
     num_workers = 0
-    continuous_exp = False
     weight_decay = 0
     epochs = 6
     batch_size = 256
