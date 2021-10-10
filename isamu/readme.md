@@ -50,7 +50,7 @@ These models were trained and inferred in the TPU environment, but we have attac
 
 - Download the tfrecord data for training and save it in the train_tfrecord directory, download the tfrecod data for testing and save it in the test_tfrecord directory, and if you use pseudo label data, download it and save it in pseudo_ tfrecord directory. Store the directory containing all of these in the INPUT_PATH directory of config.py.
 
-- In the data path of config.py, specify the directory where the data used for [spectral whitening](https://www.kaggle.com/yamsam/g2net-w-prof) was downloaded. Set the CONFIG_PATH to the yaml file.
+- In the DATA_PATH of config.py, specify the directory where the data used for [spectral whitening](https://www.kaggle.com/yamsam/g2net-w-prof) was downloaded. Set the CONFIG_PATH to the yaml file.
 
 - Training: Specify the output path of the trained model in OUTPUT_PATH and run train.sh.
 
