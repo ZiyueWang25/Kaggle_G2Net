@@ -59,7 +59,7 @@ def run_fold(fold, original_train_df, Config,
     print('training data samples, val data samples: ', len(train_X), len(valid_X))
     train_data_retriever = DataRetriever(train_X["file_path"].values, train_X["target"].values,
                                          synthetic=synthetic, Config=Config)
-    valid_data_retriever = DataRetrieverTest(valid_X["file_path"].values, valid_X["target"].values)
+    valid_data_retriever = DataRetrieverTest(valid_X["file_path"].values, valid_X["target"].values, Config=Config)
 
     train_loader = DataLoader(train_data_retriever,
                               batch_size=Config.batch_size,

@@ -47,7 +47,7 @@ class DataRetriever(Dataset):
             if np.random.random() < 0.5:
                 waves = -waves
 
-        x = torch.FloatTensor(waves * 1e20)
+        x = torch.FloatTensor(waves * 1e20) if self.Config.use_raw_wave else torch.FloatTensor(waves)
         if target > 0 and (self.synthetic is not None):
             w = torch.FloatTensor((self.synthetic[random.choice(self.synthetic_keys)]))
             w = w * max(random.gauss(3.6, 1), 1)
@@ -59,10 +59,11 @@ class DataRetriever(Dataset):
 
 
 class DataRetrieverTest(Dataset):
-    def __init__(self, paths, targets, transforms=None):
+    def __init__(self, paths, targets, transforms=None, Config=None):
         self.paths = paths
         self.targets = targets
         self.transforms = transforms
+        self.Config = Config
 
     def __len__(self):
         return len(self.paths)
@@ -73,7 +74,7 @@ class DataRetrieverTest(Dataset):
         target = self.targets[index]
         if self.transforms is not None:
             waves = self.transforms(waves, sample_rate=2048)
-        x = torch.FloatTensor(waves * 1e20)
+        x = torch.FloatTensor(waves * 1e20) if self.Config.use_raw_wave else torch.FloatTensor(waves)
         target = torch.tensor(target, dtype=torch.float)
         return x, target
 
@@ -128,4 +129,5 @@ def read_data(Config):
     train_df['fold'] = -1
     for fold, (train_index, valid_index) in enumerate(splits):
         train_df.loc[valid_index, "fold"] = fold
+    train_df.groupby('fold')['target'].apply(lambda s: s.value_counts(normalize=True))
     return train_df, test_df
