@@ -13,6 +13,8 @@ if __name__ == "__main__":
     Config.device=device
     cv_score = 0
     if arg.gen_oof:
+        print("Generating OOF....")
         cv_score, oof_all = get_oof_final(train_df, Config)
     if arg.gen_test:
+        print("Generating test....")
         test_avg = get_test_avg(cv_score, test_df, Config)
