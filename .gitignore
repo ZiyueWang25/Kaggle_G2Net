@@ -1,6 +1,7 @@
 .idea/
-/vincentwang25/input/
-/vincentwang25/model_weights/
+1D_Model/input/
+1D_Model/dataset/
+1D_Model/own_notebook/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
