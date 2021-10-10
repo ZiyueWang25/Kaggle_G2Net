@@ -9,12 +9,12 @@ class BaseConfig:
     seed = 48
     target_size = 1
     kaggleDataFolder = '../data/g2net-gravitational-wave-detection/' # change if necessary
-    output_dir = DATA_LOC + "Models/"
-    PL_folder = DATA_LOC + "PL_fold/"
-    whiten_train_folder = DATA_LOC + "whiten-train-w0/"
-    whiten_test_folder = DATA_LOC + "whiten-test-w0/"
-    avr_w0_path = DATA_LOC + "avr_w0.pth"
-    sim_data_path = DATA_LOC + 'GW_sim_300k.pkl'
+    output_dir = DATA_LOC + "/Models/"
+    PL_folder = DATA_LOC + "/PL_fold/"
+    whiten_train_folder = DATA_LOC + "/whiten-train-w0/"
+    whiten_test_folder = DATA_LOC + "/whiten-test-w0/"
+    avr_w0_path = DATA_LOC + "/avr_w0.pth"
+    sim_data_path = DATA_LOC + '/GW_sim_300k.pkl'
 
     use_raw_wave = True
     use_checkpoint = False

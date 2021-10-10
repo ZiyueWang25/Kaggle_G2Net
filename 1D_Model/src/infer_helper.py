@@ -99,7 +99,8 @@ def get_oof_final(train_df, Config):
             Config.fold = fold
         model = getModel(Config)
         oof = train_df.query(f"fold=={fold}").copy()
-        oof['preds'] = torch.load(f'{Config.model_output_folder}/Fold_{fold}_best_model.pth')['valid_preds']
+        #oof['preds'] = torch.load(f'{Config.model_output_folder}/Fold_{fold}_best_model.pth')['valid_preds']
+        oof['preds'] = 0.5
         if Config.use_swa:
             swa_model = AveragedModel(model)
             checkpoint = torch.load(f'{Config.model_output_folder}/Fold_{fold}_swa_model.pth')
@@ -113,6 +114,7 @@ def get_oof_final(train_df, Config):
         if Config.use_dp and torch.cuda.device_count() > 1:
             model = nn.DataParallel(model)
         model.eval()
+        oof['preds'] = get_tta_pred(oof, model, Config, vflip=False, shuffle01=False)
         oof = get_tta_df(oof, model, Config)
         oof.to_csv(Config.model_output_folder + f"/oof_Fold_{fold}.csv", index=False)
         oof_all = pd.concat([oof_all, oof])
@@ -207,7 +209,7 @@ def get_test_avg(CV_SCORE, test_df, Config):
         if Config.use_dp and torch.cuda.device_count() > 1:
             model = nn.DataParallel(model)
         model.eval()
-        test_df2['preds' + f'_Fold_{fold}'] = get_tta_pred(test_df2, model, Config)
+        test_df2['preds' + f'_Fold_{fold}'] = get_tta_pred(test_df2, model, Config, vflip=False, shuffle01=False)
         test_df2 = get_tta_df(test_df2, model, Config)
         test_df2.to_csv(Config.model_output_folder + f"/test_Fold_{fold}.csv", index=False)
         for col in test_df2.columns:
