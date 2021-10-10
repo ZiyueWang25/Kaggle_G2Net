@@ -412,6 +412,7 @@ class R_aug(BaseConfig):
 
 
 class R_base(R_aug):
+    PL_folder = None
     use_raw_wave = False
     do_advance_trans = True
     num_workers = 0
@@ -467,8 +468,7 @@ class Config_R120(R_base):
     model_version = "120th_V2_PL_6ep_1em3lr_32ch_vf_s01"
     model_module = 'V2SD'
     proba_final_layer = 1
-    use_pseudo_label = True
-    pseudo_label_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
+    PL_folder = "../dataset/main_112th_V2SD_PL_6ep_5Fold/"
     # conservative
     conservative_aug = []
     # aggressive, OneOf
@@ -571,7 +571,7 @@ class Config_R133(R_base):
     # frequently changed
     model_version = "133rd_V2SD_PL_4ep_2em3lr_32ch_vf_sc01_drop05"
     model_module = 'V2SD'
-    PL_folder = "../dataset/120th_V2_PL_6ep_1em3lr_32ch_vf_s01/"
+    PL_folder = "../dataset/120th_V2_PL_6ep_1em3lr_32ch_vf_s01_5Fold/"
 
     # conservative aug
     conservative_aug = []

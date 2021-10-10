@@ -7,6 +7,9 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
 - dataset/ 
   - Models/: original kaggle model upload - contains model weights, OOF prediction, test prediction
   - PL_fold/: OOF fold prediction for pseudo labeling
+  - 120th_V2_PL_6ep_1em3lr_32ch_vf_s01_5Fold/: PL from 120th model
+  - main_35th_GeM_vflip_shuffle01_5fold/: PL from 35th model
+  - main_112th_V2SD_PL_6ep_5Fold/: PL from 112nd model
   - hack-lb/: contains oof fold prediction for hacking LB in the end
   - ensemble-0916/: contains model oof prediction, test prediction throughout the ensembling phase
   - avr_w0.pth: average ASD using target 0 samples for preprocessing
