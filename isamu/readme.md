@@ -34,7 +34,7 @@ Execution time will vary depending on the model, but will take 1-2 days on TPU.
 ## TFRecords Dataset
 We created the following TFRecord data set which is useful for handling large data sets on TPU.Those TFRecords datasets are publicly available on Kaggle Dataset.
 
-- [Strafieid KFold TFRecord Dataset for training](https://www.kaggle.com/vincentwang25/g2net-skf) that included original G2Net training data(signal and target values)
+- [Strafieid KFold TFRecord Dataset for training](https://www.kaggle.com/vincentwang25/g2net-skf) that included original G2Net training data(signal and target values) with strafieid kfold setup.
 - TFRecord Dataset for test [(0)](https://www.kaggle.com/hidehisaarai1213/g2net-waveform-tfrecords-test-0-4)[(1)](https://www.kaggle.com/hidehisaarai1213/g2net-waveform-tfrecords-test-5-9) that included original G2Net test data(signal)
 - Soft Pseudo Labeling TFRecord Dataset[(0)](https://www.kaggle.com/yamsam/g2net-public-s-01) [(1)](https://www.kaggle.com/yamsam/g2net-public-s-02) using a prediction from [public kaggle kernel](https://www.kaggle.com/hijest/g2net-efficientnetb3-b7-ensemble) (Puiblic LB 0.8779)
 - [Soft Pseudo Labeling TFRecord Dataset](https://www.kaggle.com/yamsam/g2net-sp-av) using a prediction from emsemble of other model outputs (Puiblic LB 0.8822)
@@ -43,6 +43,15 @@ We created the following TFRecord data set which is useful for handling large da
 
 This notebooks has been tested in the following TPU environments.
   - kaggle TPU kernel
-  - colab pro TPU ( maybe colab)
+  - colab pro TPU
 
-  
+## Training and Inference on GPU
+These models were trained and inferred in the TPU environment, but we have attached code that works in the GPU environment, just in case. The inference code can also be run using the weights of the models trained on TPU.
+
+- Download the tfrecord data for training and save it in the train_tfrecord directory, download the tfrecod data for testing and save it in the test_tfrecord directory, and if you use pseudo label data, download it and save it in pseudo_ tfrecord directory. Store the directory containing all of these in the INPUT_PATH directory of config.py.
+
+- In the data path of config.py, specify the directory where the data used for [spectral whitening](https://www.kaggle.com/yamsam/g2net-w-prof) was downloaded. Set the CONFIG_PATH to the yaml file.
+
+- Training: Specify the output path of the trained model in OUTPUT_PATH and run train.sh.
+
+- Inference: Specify the directory where the weights of the models to be used for inference are stored in MODEL_PATH. if you want to use the weights learned in the TPU environment, store them in the following directories for each model: Eff-B3, Eff-B4, Eff-B5, Eff-B7. These names are set in the yaml file. Run infer.sh at the end.

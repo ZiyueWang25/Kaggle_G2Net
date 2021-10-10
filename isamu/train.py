@@ -195,10 +195,10 @@ def auto_select_accelerator():
         
     print(f"Running on {strategy.num_replicas_in_sync} replicas")
     
-#     if MIXED:
-#         policy = mixed_precision.Policy('mixed_bfloat16')
-#         mixed_precision.set_global_policy(policy)
-#         print ('using mixed precisison')
+    if MIXED and TFHUB_MODEL is None:
+        policy = mixed_precision.Policy('mixed_float16')
+        mixed_precision.set_global_policy(policy)
+        print ('using mixed precisison')
     return strategy, TPU_DETECTED
 
 

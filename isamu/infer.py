@@ -73,7 +73,7 @@ DEBUG=config.debug
 
 if DEBUG:
     TTA=False
-    FOLDS=[0]
+#    FOLDS=[0]
     print (FOLDS)
     IMAGE_SIZE = 32
     if TFHUB_MODEL:
@@ -602,9 +602,9 @@ all_test_preds = []
 # In[22]:
 
 
-if DEBUG:
-    files_test_all = [files_test_all[0]]
-    print('debug:only use 1file', files_test_all)
+# if DEBUG:
+#     files_test_all = [files_test_all[0]]
+#     print('debug:only use 1file', files_test_all)
 
 
 # In[23]:
@@ -673,6 +673,7 @@ for i in FOLDS:
 
 
 if TTA:
+        
     ORDER=[1,0,2]
 
     for i in FOLDS:
@@ -684,8 +685,6 @@ if TTA:
         pred = model.predict(ds_test, verbose=1, steps=STEPS)[:count_data_items_test(files_test_all)]
 
         all_test_preds.append(pred.reshape(-1))
-        
-        del model, ds_test
 
         gc.collect()
         tf.keras.backend.clear_session()
