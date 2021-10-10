@@ -9,12 +9,12 @@ def M1D(config):
                                   proba_final_layer=config.proba_final_layer,
                                   sdrop=config.sdrop,
                                   use_raw_wave=config.use_raw_wave,
-                                  avrSpecDir=config.inputDataFolder)
+                                  avr_w0_path=config.avr_w0_path)
     elif config.model_module == "V2S":
         model = ModelIafossV2S(n=config.channels,
                                sdrop=config.sdrop,
                                use_raw_wave=config.use_raw_wave,
-                               avrSpecDir=config.inputDataFolder)
+                               avr_w0_path=config.avr_w0_path)
     elif config.model_module == "Model1DCNNGEM":
         model = Model1DCNNGEM(initial_channnels=config.channels)
     elif config.model_module == 'V2SDCBAM':

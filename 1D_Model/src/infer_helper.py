@@ -88,7 +88,7 @@ def get_tta_df(df, model, Config):
         if Config.shuffle01:
             df["tta_shuffle01"] = get_tta_pred(df, model, Config, shuffle01=True)
         if Config.vflip and Config.shuffle01:
-            df["tta_vflip_shuffle01"] = get_tta_pred(df, model, Config, use_vflip=True, shuffle01=True)
+            df["tta_vflip_shuffle01"] = get_tta_pred(df, model, Config, vflip=True, shuffle01=True)
     return df
 
 
@@ -138,7 +138,7 @@ def get_oof_final(train_df, Config):
 
 
 def gen_oof_weight(Config):
-    if Config.aggr_func_names is None and Config.cons_func_names:
+    if Config.aggr_func_names is None and Config.cons_func_names is None:
         return None
     oof_weight = defaultdict(lambda: 1)
     aggr_total_weight = 0
@@ -212,7 +212,7 @@ def get_test_avg(CV_SCORE, test_df, Config):
         test_df2.to_csv(Config.model_output_folder + f"/test_Fold_{fold}.csv", index=False)
         for col in test_df2.columns:
             if "tta" in col or 'preds' in col:
-                col_weight = 1 if total_weight is None else test_weight[col_weight]
+                col_weight = 1 if test_weight is None else test_weight[col]
                 total_weight += col_weight
                 test_avg['target'] += test_df2[col] * col_weight
     test_avg['target'] /= total_weight

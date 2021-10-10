@@ -13,14 +13,22 @@ class BaseConfig:
     PL_folder = DATA_LOC + "PL_fold/"
     whiten_train_folder = DATA_LOC + "whiten-train-w0/"
     whiten_test_folder = DATA_LOC + "whiten-test-w0/"
+    avr_w0_path = DATA_LOC + "avr_w0.pth"
     sim_data_path = DATA_LOC + 'GW_sim_300k.pkl'
+
     use_raw_wave = True
     use_checkpoint = False
+    checkpoint_folder=None
     prev_model_folder = None
     debug = False
     use_subset = False
     subset_frac = 0.4
     # augmentation
+    do_advance_trans = False
+    cons_funcs = None
+    aggr_funcs = None
+    cons_func_names = None
+    aggr_func_names = None
     vflip = False
     shuffle01 = False
     time_shift = False

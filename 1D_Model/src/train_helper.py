@@ -79,7 +79,7 @@ def run_fold(fold, original_train_df, Config,
     else:
         optimizer = AdamW(model.parameters(), lr=Config.lr, eps=1e-08, weight_decay=Config.weight_decay,
                           amsgrad=False)
-    scheduler = get_scheduler(optimizer, len(train_X), Config.batch_size, Config.epochs, Config.warmup)
+    scheduler = get_scheduler(optimizer, len(train_X), Config)
     swa_model, swa_scheduler = None, None
     best_valid_score = -np.inf
     if Config.checkpoint_folder is not None:

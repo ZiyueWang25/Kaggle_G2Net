@@ -126,10 +126,10 @@ def to_Mish(model):
 
 class V2StochasticDepth(nn.Module):  # stocnot on ex
     def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=False), ps=0.5, proba_final_layer=0.5, use_raw_wave=True,
-                 sdrop=0, avrSpecDir="/home/data/", **kwarg):
+                 sdrop=0, avr_w0_path="avr_w0.pth", **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load(avrSpecDir + "/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load(avr_w0_path), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)
@@ -324,10 +324,10 @@ class ResBlockSGeM(nn.Module):
 
 class ModelIafossV2S(nn.Module):
     def __init__(self, n=8, nh=256, act=nn.SiLU(inplace=False), ps=0.5, proba_final_layer=0.5,
-                 use_raw_wave=True, sdrop=0, avrSpecDir="/home/data/", **kwarg):
+                 use_raw_wave=True, sdrop=0, avr_w0_path="avr_w0.pth", **kwarg):
         super().__init__()
         self.window = nn.Parameter(torch.FloatTensor(signal.windows.tukey(4096 + 2 * 2048, 0.5)), requires_grad=False)
-        self.avr_spec = nn.Parameter(torch.load(avrSpecDir + "/avr_w0.pth"), requires_grad=False)
+        self.avr_spec = nn.Parameter(torch.load(avr_w0_path), requires_grad=False)
         self.use_raw_wave = use_raw_wave
 
         self.sdrop = nn.Dropout(sdrop)
