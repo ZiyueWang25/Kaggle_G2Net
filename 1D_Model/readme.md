@@ -4,11 +4,6 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
 
 
 ## DATA SETUP 
-(3 steps To be combined!)
-1. If there is no `data` folder in the parent folder, please 
-   1. download it from the google drive (TBA link)
-   2. put it inside parent folder
-   3. rename the folder as `data` folder
 1. Download kaggle competition data (assumes the [Kaggle API](https://github.com/Kaggle/kaggle-api) is installed)
    1. `cd ../data/`
    2. `kaggle competitions download -c g2net-gravitational-wave-detection`
