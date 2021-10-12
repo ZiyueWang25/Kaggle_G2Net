@@ -16,7 +16,7 @@
 
 **Training:**
 
-- Pretraining with GW
+- Pretraining with simulated GW
 - Training with Pseudo Label or Soft Label
 - BCE, Rank Loss
 - MixUp
