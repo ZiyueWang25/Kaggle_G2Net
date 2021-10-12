@@ -5,7 +5,7 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
 
 ## DATA SETUP 
 1. Download kaggle competition data (assumes the [Kaggle API](https://github.com/Kaggle/kaggle-api) is installed)
-   1. `cd ../data/`
+   1. `cd ../../data/`
    2. `kaggle competitions download -c g2net-gravitational-wave-detection`
    3. `unzip -q g2net-gravitational-wave-detection`
 2. Generate whiten wave from competition data
@@ -16,11 +16,8 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
 1. To train a single model using a config listed config.py, run `python train.py --model_config <config_name>`
 2. To perform inference on a single model, run `python infer.py --model_config <config_name> --gen_oof 1 --gen_test 1`
 
-3. To train all models and reproduce the result ( need to be deleted or combined with MODEL BUILD)
-   2. reproduce models:`./reproduce_train.sh`  
-   3. reproduce predictions: `./reproduce_infer_test.sh`
 
-## MODEL BUILD: There are three options to reproduce the solution.
+## Solution Reproduction - 3 options
 
 1) very fast prediction: run `notebook/stacking.ipynb`
     1. uses precomputed predictions
@@ -29,11 +26,10 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
 
     1) uses pretrained models
     2) expect this to run for 6 hours
-
-1. retrain models: run `python reproduce_train.sh`
-   1. trains all models from scratch
-   2. If we want to use ensemble, we need to run `python reproduce_infer_oof_test.sh`. Then we need to change the directory inside `notebook/stacking.ipynb` correspondingly to point to each oof prediction and submission file.
-   3. expect this to run about a week
+3) retrain models: run `python reproduce_train.sh`
+    1) trains all models from scratch
+    2) If we want to use ensemble, we need to run `python reproduce_infer_oof_test.sh`. Then we need to change the directory inside `notebook/stacking.ipynb` correspondingly to point to each oof prediction and submission file.
+    3) expect this to run about a week
 
 
 ## HARDWARE: (The following specs were used to create the original solution)
