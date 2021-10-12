@@ -1,6 +1,6 @@
 .idea/
 1D_Model/input/
-1D_Model/dataset/
+data/
 1D_Model/own_notebook/
 # Byte-compiled / optimized / DLL files
 __pycache__/
