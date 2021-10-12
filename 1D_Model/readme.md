@@ -1,40 +1,49 @@
 # Reproduce 1D Model Result
 
-Below you can find a outline of how to reproduce our 1D Model solution for the G2Net-Gravitational-Wave-Detection competition.
+Below you can find a outline of how to reproduce our 1D Model solution for the G2Net-Gravitational-Wave-Detection competition. All shell commands used in each step are run from current directory
 
-## HARDWARE: (The following specs were used to create the original solution)
 
-1 x NVIDIA Tesla A100 or 2 x NVIDIA GeForce RTX 2080Ti.
-
-## Below are the shell commands used in each step, as run from current directory
-
-1. Download kaggle competition data (assume the Kaggle API is installed)
+## DATA SETUP 
+(3 steps To be combined!)
+1. If there is no `data` folder in the parent folder, please 
+   1. download it from the google drive (TBA link)
+   2. put it inside parent folder
+   3. rename the folder as `data` folder
+1. Download kaggle competition data (assumes the [Kaggle API](https://github.com/Kaggle/kaggle-api) is installed)
    1. `cd ../data/`
    2. `kaggle competitions download -c g2net-gravitational-wave-detection`
    3. `unzip -q g2net-gravitational-wave-detection`
 2. Generate whiten wave from competition data
    1. run notebook `1D_Model/notebooks/generate_whiten_wave.ipynb)`
-3. Reproduce Result
+
+## TRAINING AND INFERENCE. 
+
+1. To train a single model using a config listed config.py, run python train.py --model_config <config_name>
+2. To perform inference on a single model, run (TBA)
+
+4. To train all models and reproduce the result ( need to be deleted or combined with MODEL BUILD)
    1. `cd ../1D_Model/`
    2. reproduce models:`./reproduce_train.sh`  
-   3. reproduce predictions: `./reproduce_infer.sh`
+   3. reproduce predictions: `./reproduce_infer.sh`(file name TB changed)
 
-## MODEL BUILD: There are three options to produce the solution.
+## MODEL BUILD: There are three options to reproduce the solution.
 
 1) very fast prediction: run `notebook/stacking.ipynb`
-    1) runs in 2 hours
-    2) uses precomputed predictions
+    a) uses precomputed predictions 
+    b) expect this to run for 2 hours (on hardware similar to ours)
+2) ordinary prediction: run `python reproduce_infer_test.sh`
+    a) uses pretrained models
+    b) expect this to run for 6 hours
+3) retrain models: run `python reproduce_train.sh`
+    a) trains all models from scratch
+    b) follow this with (2) to produce entire solution from scratch
+    c) expect this to run for about 170 hours
+4) If you want to use ensemble, you need to run `python reproduce_infer_oof_test.sh`. Then you need to change the directory inside `notebook/stacking.ipynb` correspondingly to point to each oof prediction and submission file.
 
-2. ordinary prediction: run `reproduce_infer_test.sh`
-   1. expect this to run for 6 hours
-   2. uses pretrained models
 
-3. retrain models: run `python reproduce_train.sh` 
-   1. expect this to run about a week
-   2. trains all models from scratch
-   3. If we want to use ensemble, we need to run `python reproduce_infer_oof_test.sh`. Then we need to change the directory inside `notebook/stacking.ipynb` correspondingly to point to each oof prediction and submission file.
+## HARDWARE: (The following specs were used to create the original solution)
 
-
+1 x NVIDIA Tesla A100 or 2 x NVIDIA GeForce RTX 2080Ti.
 
 ## Folder CONTENTS
 
