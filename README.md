@@ -38,10 +38,6 @@
 - CMA-ES Optimization
 - Hacking Private LB
 
-### Introduction
-
-Our team would like to thank organizers and kaggle for making this competition possible. Also, I want to express my gratitude to my outstanding teammates [@vincentwang25](https://www.kaggle.com/vincentwang25), [@richx86](https://www.kaggle.com/richx86), [@anjum48](https://www.kaggle.com/anjum48), and [@yamsam](https://www.kaggle.com/yamsam) for their incredible contribution towards our final result. In this competition I got the last gold medal required for getting kaggle GM, and also it is the first gold medal for [@vincentwang25](https://www.kaggle.com/vincentwang25) and [@richx86](https://www.kaggle.com/richx86) . The provided write-up is the result of the cumulative efforts of all our team members, and I just got the privilege to post it.
-
 ### Details
 
 #### 2D Models
