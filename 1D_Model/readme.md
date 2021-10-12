@@ -18,27 +18,27 @@ Below you can find a outline of how to reproduce our 1D Model solution for the G
 
 ## TRAINING AND INFERENCE. 
 
-1. To train a single model using a config listed config.py, run python train.py --model_config <config_name>
-2. To perform inference on a single model, run (TBA)
+1. To train a single model using a config listed config.py, run `python train.py --model_config <config_name>`
+2. To perform inference on a single model, run `python infer.py --model_config <config_name> --gen_oof 1 --gen_test 1`
 
-4. To train all models and reproduce the result ( need to be deleted or combined with MODEL BUILD)
-   1. `cd ../1D_Model/`
+3. To train all models and reproduce the result ( need to be deleted or combined with MODEL BUILD)
    2. reproduce models:`./reproduce_train.sh`  
-   3. reproduce predictions: `./reproduce_infer.sh`(file name TB changed)
+   3. reproduce predictions: `./reproduce_infer_test.sh`
 
 ## MODEL BUILD: There are three options to reproduce the solution.
 
 1) very fast prediction: run `notebook/stacking.ipynb`
-    a) uses precomputed predictions 
-    b) expect this to run for 2 hours (on hardware similar to ours)
-2) ordinary prediction: run `python reproduce_infer_test.sh`
-    a) uses pretrained models
-    b) expect this to run for 6 hours
-3) retrain models: run `python reproduce_train.sh`
-    a) trains all models from scratch
-    b) follow this with (2) to produce entire solution from scratch
-    c) expect this to run for about 170 hours
-4) If you want to use ensemble, you need to run `python reproduce_infer_oof_test.sh`. Then you need to change the directory inside `notebook/stacking.ipynb` correspondingly to point to each oof prediction and submission file.
+    1. uses precomputed predictions
+    2. runs in 2 hours (on hardware similar to ours)
+2) ordinary prediction: run `reproduce_infer_test.sh`
+
+    1) uses pretrained models
+    2) expect this to run for 6 hours
+
+1. retrain models: run `python reproduce_train.sh`
+   1. trains all models from scratch
+   2. If we want to use ensemble, we need to run `python reproduce_infer_oof_test.sh`. Then we need to change the directory inside `notebook/stacking.ipynb` correspondingly to point to each oof prediction and submission file.
+   3. expect this to run about a week
 
 
 ## HARDWARE: (The following specs were used to create the original solution)
